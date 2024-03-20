@@ -109,13 +109,46 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist):
         for prob_hist in trajectory:
             x = [hist[0][0] for hist in prob_hist]
             y = [hist[1][0] for hist in prob_hist]
-            subplt.plot(x,y)
+            subplt.plot(x,y, color='black')
    
     subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
     plt.xlim(-0.01,1.01)
     plt.ylim(-0.01,1.01)
     plt.xlabel(f"P({game.row_action_name(0)}) Agent 1")
     plt.ylabel(f"P({game.row_action_name(0)}) Agent 2")
+    filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + ".png")
+    plt.savefig(filepath)
+    plt.show()
+
+def plot_trajectory_pd(game,alg:str,trajectorylist):
+    """
+    Plots possible trajectories for the requested prisoners dilemma game using a , 
+    by providing a list of trajectories containing the history of the 
+    states achieved during the self-play.
+    """
+    current_directory_path = os.getcwd()
+    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    if not os.path.exists(subfolder_path):
+        os.makedirs(subfolder_path)
+
+    projections.register_projection(vis.Dynamics3x3Axes)
+    payoff_tensor = utils.game_payoffs_array(game)
+    repdyn = dynamics.SinglePopulationDynamics(payoff_tensor,dynamics.replicator)
+
+    # Plot replicator dynamics as a vector field.
+    fig = plt.figure(figsize=(4,4))
+    subplt = fig.add_subplot(111,projection="3x3")
+    subplt.quiver(repdyn,color='blue')
+
+    # Plot trajectories
+    for trajectory in trajectorylist:
+        for prob_hist in trajectory:
+            x = [hist[0][0] for hist in prob_hist]
+            y = [hist[1][0] for hist in prob_hist]
+            subplt.plot(x,y,color='black')
+   
+    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
+    subplt.set_labels(["Rock", "Paper", "Scissors"])
     filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + ".png")
     plt.savefig(filepath)
     plt.show()
