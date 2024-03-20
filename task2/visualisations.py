@@ -1,3 +1,5 @@
+import os
+
 from open_spiel.python.egt import dynamics
 from open_spiel.python.egt import utils
 from open_spiel.python import rl_environment
@@ -7,7 +9,7 @@ from matplotlib import projections
 import matplotlib.pyplot as plt
 
 import pyspiel
-import os
+
 
 def main():
     """
@@ -15,15 +17,16 @@ def main():
     """
     game_sub = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"],
                                             [[12,0],[11,10]], [[12,11],[0,10]])
-    game_rps = pyspiel.load_matrix_game("matrix_rps")
-    game_bos = pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes", ["O","M"],["O","M"],
-                                            [[3,0],[0,2]],[[2,0],[0,3]])
-    game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", ["C","D"],["C","D"],
-                                            [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
+    game_rps = pyspiel.create_matrix_game("rock_paper_scissors", "Rock, Paper, Scissors",["R","P","S"],["R","P","S"],
+                                          [[0,-0.05,0.25],[0.05,0,-0.5],[-0.25,0.5,0]],[[0,0.05,-0.25],[-0.05,0,0.5],[0.25,-0.5,0]])
+    game_bos = pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes", 
+                                          ["O","M"],["O","M"], [[3,0],[0,2]],[[2,0],[0,3]])
+    game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", 
+                                         ["C","D"],["C","D"], [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
 
     games = [game_sub,game_bos,game_rps,game_pd]
 
-    algorithms = ["egreedy","lboltzmann"]
+    algorithms = ["e-greedy","lenient boltzmann"]
 
     plot_replicator_dynamics_2x2(game_sub)
     plot_replicator_dynamics_rps(game_rps)
@@ -32,8 +35,8 @@ def main():
 
     for alg in algorithms:
         for game in games:
-            # TODO add training functions and assign history to a variable. Multiple cases need to be added
-            # for multiple trajectory lines on plot
+            # TODO Add training functions and assign history to a variable. 
+            # TODO Multiple cases need to be added for multiple trajectory lines on plot.
             trajectories = []
             
             # Use dedicated plot function if Rock, Paper, Scissors
