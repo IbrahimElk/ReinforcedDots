@@ -21,6 +21,8 @@ def main():
     game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", ["C","D"],["C","D"],
                                             [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
 
+    #algorithms = ["egreedy","lboltzmann"]
+
     ## TODO add other matrix games above.
     plot_replicator_dynamics_2x2(game_sub)
     plot_replicator_dynamics_rps(game_rps)
@@ -71,11 +73,6 @@ def plot_replicator_dynamics_2x2(game):
 
     # Quiver plot
     rpdyn.quiver(dyn,color='blue')
-    #if history:
-    #    for pop_hist in history:
-    #        x = [hist[0][0] for hist in pop_hist]
-    #        y = [hist[1][0] for hist in pop_hist]
-    
     
     plt.xlim(-0.01,1.01)
     plt.ylim(-0.01,1.01)
@@ -83,6 +80,43 @@ def plot_replicator_dynamics_2x2(game):
     plt.ylabel(f"P({game.row_action_name(0)}) Agent 2")
     rpdyn.set_title(f"Directional field plot: {game.get_type().long_name}")
     filepath = os.path.join(subfolder_path,"dir_field_plot_" + game.get_type().short_name +".png")
+    plt.savefig(filepath)
+    plt.show()
+
+
+def plot_trajectory_2x2(game,alg:str,trajectorylist):
+    """
+    Plots possible trajectories for a given 2x2 matrix game using a , 
+    by providing a list of trajectories containing the history of the 
+    states achieved during the self-play.
+    """
+    current_directory_path = os.getcwd()
+    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    if not os.path.exists(subfolder_path):
+        os.makedirs(subfolder_path)
+
+    projections.register_projection(vis.Dynamics2x2Axes)
+    payoff_tensor = utils.game_payoffs_array(game)
+    repdyn = dynamics.MultiPopulationDynamics(payoff_tensor,dynamics.replicator)
+
+    # Plot replicator dynamics as a vector field.
+    fig = plt.figure(figsize=(4,4))
+    subplt = fig.add_subplot(111,projection="2x2")
+    subplt.quiver(repdyn,color='blue')
+
+    # Plot trajectories
+    for trajectory in trajectorylist:
+        for prob_hist in trajectory:
+            x = [hist[0][0] for hist in prob_hist]
+            y = [hist[1][0] for hist in prob_hist]
+            subplt.plot(x,y)
+   
+    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
+    plt.xlim(-0.01,1.01)
+    plt.ylim(-0.01,1.01)
+    plt.xlabel(f"P({game.row_action_name(0)}) Agent 1")
+    plt.ylabel(f"P({game.row_action_name(0)}) Agent 2")
+    filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + ".png")
     plt.savefig(filepath)
     plt.show()
 
