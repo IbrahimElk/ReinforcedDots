@@ -21,17 +21,33 @@ def main():
     game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", ["C","D"],["C","D"],
                                             [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
 
-    #algorithms = ["egreedy","lboltzmann"]
+    games = [game_sub,game_bos,game_rps,game_pd]
 
-    ## TODO add other matrix games above.
+    algorithms = ["egreedy","lboltzmann"]
+
     plot_replicator_dynamics_2x2(game_sub)
     plot_replicator_dynamics_rps(game_rps)
     plot_replicator_dynamics_2x2(game_bos)
     plot_replicator_dynamics_2x2(game_pd)
 
-    
+    for alg in algorithms:
+        for game in games:
+            # TODO add training functions and assign history to a variable. Multiple cases need to be added
+            # for multiple trajectory lines on plot
+            trajectories = []
+            
+            # Use dedicated plot function if Rock, Paper, Scissors
+            if game.get_type().long_name == "Rock, Paper, Scissors":
+                plot_trajectory_rps(game,alg,trajectories)
 
+            else:
+                plot_trajectory_2x2(game,alg,trajectories)
+        
+   
 def plot_replicator_dynamics_rps(game):
+    """
+    Plots the replicator dynamics for a given rock, paper, scissor matrix game.
+    """
     current_directory_path = os.getcwd()
     subfolder_path = os.path.join(current_directory_path,'task2','images')
     if not os.path.exists(subfolder_path):
@@ -57,6 +73,9 @@ def plot_replicator_dynamics_rps(game):
     plt.show()
 
 def plot_replicator_dynamics_2x2(game):
+    """
+    Plots the replicator dynamics for a given 2x2 matrix game.
+    """
     current_directory_path = os.getcwd()
     subfolder_path = os.path.join(current_directory_path,'task2','images')
     if not os.path.exists(subfolder_path):
@@ -82,7 +101,6 @@ def plot_replicator_dynamics_2x2(game):
     filepath = os.path.join(subfolder_path,"dir_field_plot_" + game.get_type().short_name +".png")
     plt.savefig(filepath)
     plt.show()
-
 
 def plot_trajectory_2x2(game,alg:str,trajectorylist):
     """
@@ -120,9 +138,9 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist):
     plt.savefig(filepath)
     plt.show()
 
-def plot_trajectory_pd(game,alg:str,trajectorylist):
+def plot_trajectory_rps(game,alg:str,trajectorylist):
     """
-    Plots possible trajectories for the requested prisoners dilemma game using a , 
+    Plots possible trajectories for the requested rock, paper, scissors game using a , 
     by providing a list of trajectories containing the history of the 
     states achieved during the self-play.
     """
