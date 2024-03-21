@@ -10,7 +10,6 @@ from matplotlib import projections
 import matplotlib.pyplot as plt
 
 import pyspiel
-from open_spiel.python.algorithms import random_agent
 from open_spiel.python import rl_tools, rl_agent
 from open_spiel.python.algorithms.tabular_qlearner import QLearner
 from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
@@ -39,7 +38,7 @@ def main():
     plot_replicator_dynamics_2x2(game_pd)
 
     current_directory_path = os.getcwd()
-    data_path = os.path.join(current_directory_path,'task2','resultaten_reduced.json')
+    data_path = os.path.join(current_directory_path,'task2','data.json')
     f = open(data_path,encoding='utf-8')
     data = json.load(f)
 
