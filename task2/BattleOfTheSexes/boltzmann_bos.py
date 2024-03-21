@@ -5,15 +5,7 @@ import numpy as np
 from open_spiel.python import rl_tools
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import random_agent
-<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-<<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
 from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
-========
-from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
->>>>>>>> main:BattleOfTheSexes/lenient_boltzmann_bos.py
-=======
-from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
->>>>>>> main:BattleOfTheSexes/boltzmann_bos.py
 
 def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
   """Evaluates `trained_agents` against `random_agents` for `num_episodes`."""
@@ -27,14 +19,6 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
     for _ in range(num_episodes):
       time_step = env.reset()
       while not time_step.last():
-<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-        traiend_agent_output = cur_agents[player_pos].step(time_step,None, is_evaluation=True)
-        random_agent_output = cur_agents[1-player_pos].step(time_step, is_evaluation=True)
-        time_step = env.step([traiend_agent_output.action,random_agent_output.action])
-
-      if time_step.rewards[player_pos] > 0:
-        wins[player_pos] += 1
-=======
         traiend_agent_output = cur_agents[player_pos].step(time_step, is_evaluation=True)
         random_agent_output = cur_agents[1-player_pos].step(time_step, is_evaluation=True)
         time_step = env.step([traiend_agent_output.action,random_agent_output.action])
@@ -44,7 +28,6 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
       if time_step.rewards[player_pos] > 0:
         wins[player_pos] += 1
       # zelf toegevoegd.
->>>>>>> main:BattleOfTheSexes/boltzmann_bos.py
       else: 
         random_wins[player_pos] += 1
   print("trained agent win rate when starting: " , wins[0] / num_episodes,         " & trained agent win rate when second: " , wins[1] / num_episodes)
@@ -58,16 +41,8 @@ def main(_):
 
     env = rl_environment.Environment(game)
     num_actions = env.action_spec()["num_actions"]
-    
-<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-<<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
+ 
     wife    = BoltzmannQLearner(player_id=0, 
-========
-    wife    = LenientBoltzmannQLearner(player_id=0, 
->>>>>>>> main:BattleOfTheSexes/lenient_boltzmann_bos.py
-=======
-    wife    = BoltzmannQLearner(player_id=0, 
->>>>>>> main:BattleOfTheSexes/boltzmann_bos.py
                                 num_actions=num_actions,    
                                 temperature_schedule=rl_tools.ConstantSchedule(0.2))
     husband = BoltzmannQLearner(player_id=1, 
@@ -81,32 +56,12 @@ def main(_):
 
     # 1. Train the agents
     training_episodes = 10**5
-<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-    kappa = 15
-=======
->>>>>>> main:BattleOfTheSexes/boltzmann_bos.py
     for cur_episode in range(training_episodes):
         if cur_episode % int(1e4) == 0:
             win_rates = eval_against_random_bots(env, [wife, husband], random_agents, 1000)
             logging.info("Starting episode %s, win_rates %s", cur_episode, win_rates)
         time_step = env.reset()
         while not time_step.last():
-<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-            wife_output = wife.step(time_step,kappa)
-            husband_output = husband.step(time_step,kappa)
-            
-            time_step = env.step([wife_output.action,husband_output.action])
-
-<<<<<<<< HEAD:task2/BattleOfTheSexes/boltzmann_bos.py
-        wife.step(time_step)
-        husband.step(time_step)
-
-========
-        wife.step(time_step, kappa)
-        husband.step(time_step, kappa)
-        
->>>>>>>> main:BattleOfTheSexes/lenient_boltzmann_bos.py
-=======
             wife_output = wife.step(time_step)
             husband_output = husband.step(time_step)
             
@@ -115,7 +70,6 @@ def main(_):
         wife.step(time_step)
         husband.step(time_step)
 
->>>>>>> main:BattleOfTheSexes/boltzmann_bos.py
     print("")
     print(env.get_state)
     print(time_step.rewards)
