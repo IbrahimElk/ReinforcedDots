@@ -41,7 +41,7 @@ def main(_):
 
     env = rl_environment.Environment(game)
     num_actions = env.action_spec()["num_actions"]
-    
+ 
     wife    = BoltzmannQLearner(player_id=0, 
                                 num_actions=num_actions,    
                                 temperature_schedule=rl_tools.ConstantSchedule(0.2))
