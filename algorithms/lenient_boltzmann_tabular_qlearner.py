@@ -63,7 +63,7 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		return self._softmax(info_state, legal_actions, temperature=epsilon)
 
 		
-	def step(self, time_step, KAPPA:int, is_evaluation=False):
+	def step(self, time_step, KAPPA, is_evaluation=False):
 		"""Returns the action to be taken and updates the Q-values if needed.
 
     	Args:
@@ -86,12 +86,6 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		if not time_step.last():
 			epsilon = 0.0 if is_evaluation else self._epsilon
 			action, probs = self._get_action_probs(info_state, legal_actions, epsilon)
-
-		# print("self._history")
-		# print(self._history)
-				
-		# print("convert_defaultdict_to_dict(self._q_values)")
-		# print(convert_defaultdict_to_dict(self._q_values))
 
 		if self._prev_info_state and not is_evaluation:
 			target = time_step.rewards[self._player_id]
@@ -144,9 +138,9 @@ if __name__ == "__main__":
 	# A simpler approach is to have the agent collect κ rewards for
 	# a single action before it updates the value of this action based on the highest of those κ rewards [8]. This
 	# results in a fixed degree of leniency, expressed by the value of κ
-
-	game = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"], [[12,0], [11,10]], [[12,11], [0,10]])
 	num_players = 2
+	game = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"], [[12,0], [11,10]], [[12,11], [0,10]])
+	
 	env = rl_environment.Environment(game)
 	num_actions = env.action_spec()["num_actions"]
 
@@ -172,15 +166,11 @@ if __name__ == "__main__":
 				print("Starting episode: ", cur_episode)
 			time_step = env.reset()
 			while not time_step.last():
-					# print("wife")
 					wife_output = wife.step(time_step,Kappa)
-					# print("husband")
 					husband_output = husband.step(time_step,Kappa)
 					time_step = env.step([wife_output.action,husband_output.action])
 
-			# print("wife")
 			wife.step(time_step, Kappa)
-			# print("husband")
 			husband.step(time_step, Kappa)
 
 	print("")
