@@ -1,13 +1,11 @@
 import logging
-import sys
 from absl import app
-from absl import flags
 import numpy as np
 
 from open_spiel.python import rl_tools
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import random_agent
-from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
 
 def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
   """Evaluates `trained_agents` against `random_agents` for `num_episodes`."""
@@ -25,6 +23,8 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
         random_agent_output = cur_agents[1-player_pos].step(time_step, is_evaluation=True)
         time_step = env.step([traiend_agent_output.action,random_agent_output.action])
 
+      # de speler die start met de eerste step, is de speler 0 en is degene waarbij .rewards[0] overeenkomt.  
+      # dus, wanneer player_pos = 1 is, dan start random agent met de eerste step, en dus is de rewards voor trained_agent , .rewards[1]
       if time_step.rewards[player_pos] > 0:
         wins[player_pos] += 1
       # zelf toegevoegd.
@@ -36,16 +36,16 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
 
 
 def main(_):
-    game = "matrix_pd"
+    game = "matrix_bos"
     num_players = 2
 
     env = rl_environment.Environment(game)
     num_actions = env.action_spec()["num_actions"]
-
-    wife    = LenientBoltzmannQLearner(player_id=0, 
+    
+    wife    = BoltzmannQLearner(player_id=0, 
                                 num_actions=num_actions,    
                                 temperature_schedule=rl_tools.ConstantSchedule(0.2))
-    husband = LenientBoltzmannQLearner(player_id=1, 
+    husband = BoltzmannQLearner(player_id=1, 
                                 num_actions=num_actions,    
                                 temperature_schedule=rl_tools.ConstantSchedule(0.2))
     # random agents for evaluation
