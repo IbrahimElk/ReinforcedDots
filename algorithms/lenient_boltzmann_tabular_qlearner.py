@@ -11,7 +11,8 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		step_size=0.1,
 		discount_factor=1.0,
 		temperature_schedule=rl_tools.ConstantSchedule(.5),
-		centralized=False):	  
+		centralized=False,
+		kappa=10):	  
 
 		super().__init__(
 			player_id,
@@ -23,6 +24,7 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		
 		self._history = collections.defaultdict(list)
 		self._prev_action = None
+		self._kappa = kappa
 
 	def _softmax(self, info_state, legal_actions, temperature):
 		"""Action selection based on boltzmann probability interpretation of Q-values.
@@ -63,7 +65,7 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		return self._softmax(info_state, legal_actions, temperature=epsilon)
 
 		
-	def step(self, time_step, KAPPA, is_evaluation=False):
+	def step(self, time_step, is_evaluation=False):
 		"""Returns the action to be taken and updates the Q-values if needed.
 
     	Args:
@@ -93,7 +95,7 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 # --------------------------------------------------------------------------------------------- 
 # begin 
 			history_rewards_length = len(self._history[self._prev_action])
-			if history_rewards_length < KAPPA: 
+			if history_rewards_length < self._kappa: 
 				self._history[self._prev_action].append(target)
 			else: 
 				target = max(self._history[self._prev_action])
@@ -143,35 +145,36 @@ if __name__ == "__main__":
 	
 	env = rl_environment.Environment(game)
 	num_actions = env.action_spec()["num_actions"]
-
+	Kappa = 15 
 	wife    = LenientBoltzmannQLearner(	player_id=0,
 										num_actions=num_actions,    
-										temperature_schedule=rl_tools.ConstantSchedule(1))
+										temperature_schedule=rl_tools.ConstantSchedule(1),
+										kappa=Kappa)
 	husband = LenientBoltzmannQLearner(	player_id=1, 
 										num_actions=num_actions,    
-										temperature_schedule=rl_tools.ConstantSchedule(1))
+										temperature_schedule=rl_tools.ConstantSchedule(1),
+										kappa=Kappa)
 
 	# 1. Train the agents
-	training_episodes = 10**5
+	training_episodes = 25000
 	# FIXME: wrm is het zo slecht als met willekeurige kappa ????
 	# het is zo dat bepaalde acties enkel rewards "12" bevatten en dus de max zou die nemen....
 
 	# aight blijkbaar als temperature 1 is, dan groter kans op 12???
 	# FIXME: mss de agent laten runnen voor meerere keren voor verschillende waarden van temperature ? 
 	# (kappa, is denk ik genoeg , puur op intuitie.)
-	Kappa = 15 
 
 	for cur_episode in range(training_episodes):
 			if cur_episode % int(1e4) == 0:
 				print("Starting episode: ", cur_episode)
 			time_step = env.reset()
 			while not time_step.last():
-					wife_output = wife.step(time_step,Kappa)
-					husband_output = husband.step(time_step,Kappa)
+					wife_output = wife.step(time_step)
+					husband_output = husband.step(time_step)
 					time_step = env.step([wife_output.action,husband_output.action])
 
-			wife.step(time_step, Kappa)
-			husband.step(time_step, Kappa)
+			wife.step(time_step)
+			husband.step(time_step)
 
 	print("")
 	print(env.get_state)
