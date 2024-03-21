@@ -78,17 +78,6 @@ def main():
 
                 else:
                     raise ValueError("Unknown algorithm name")
-        #for game in games:
-            # TODO Add training functions and assign history to a variable. 
-            # TODO Multiple cases need to be added for multiple trajectory lines on plot.
-        #    trajectories = []
-            
-            # Use dedicated plot function if Rock, Paper, Scissors
-        #    if game.get_type().long_name == "Rock, Paper, Scissors":
-        #        plot_trajectory_rps(game,alg,trajectories)
-
-        #    else:
-        #        plot_trajectory_2x2(game,alg,trajectories)
 
     f.close()
         
