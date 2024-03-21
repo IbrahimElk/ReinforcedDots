@@ -29,14 +29,14 @@ def main():
     game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", 
                                          ["C","D"],["C","D"], [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
 
-    games = [game_sub,game_bos,game_brps,game_pd]
+    #games = [game_sub,game_bos,game_brps,game_pd]
     gamedict = {'matrix_bos':game_bos, 'matrix_brps':game_brps, 'matrix_pd':game_pd, 'matrix_sub':game_sub,'matrix_rps':game_brps}
     algorithmdict = {"Q":"e-greedy","LB":"lenient boltzmann","B":"boltzmann"}
 
-    #plot_replicator_dynamics_2x2(game_sub)
-    #plot_replicator_dynamics_rps(game_rps)
-    #plot_replicator_dynamics_2x2(game_bos)
-    #plot_replicator_dynamics_2x2(game_pd)
+    plot_replicator_dynamics_2x2(game_sub)
+    plot_replicator_dynamics_rps(game_brps)
+    plot_replicator_dynamics_2x2(game_bos)
+    plot_replicator_dynamics_2x2(game_pd)
 
     current_directory_path = os.getcwd()
     data_path = os.path.join(current_directory_path,'task2','resultaten_reduced.json')
@@ -309,7 +309,7 @@ def get_correct_agents(method:str, num_players, num_actions, temperature, kappa)
         #         for idx in range(num_players)
         #     ]
         case _: 
-            raise "ERROR"
+            raise ValueError("Invalid method name provided")
     return agents
 
 def record_results(game_name, dict_q_learning):
