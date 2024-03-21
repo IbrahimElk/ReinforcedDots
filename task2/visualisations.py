@@ -22,34 +22,75 @@ def main():
     """
     game_sub = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"],
                                             [[12,0],[11,10]], [[12,11],[0,10]])
-    game_rps = pyspiel.create_matrix_game("rock_paper_scissors", "Rock, Paper, Scissors",["R","P","S"],["R","P","S"],
+    game_brps = pyspiel.create_matrix_game("rock_paper_scissors", "Biased Rock, Paper, Scissors",["R","P","S"],["R","P","S"],
                                           [[0,-0.05,0.25],[0.05,0,-0.5],[-0.25,0.5,0]],[[0,0.05,-0.25],[-0.05,0,0.5],[0.25,-0.5,0]])
     game_bos = pyspiel.create_matrix_game("battle_of_the_sexes", "Battle of the Sexes", 
                                           ["O","M"],["O","M"], [[3,0],[0,2]],[[2,0],[0,3]])
     game_pd = pyspiel.create_matrix_game("prisoners_dilemma", "Prisoners Dilemma", 
                                          ["C","D"],["C","D"], [[-1,-4],[0,-3]],[[-1,0],[-4,-3]])
 
-    games = [game_sub,game_bos,game_rps,game_pd]
+    games = [game_sub,game_bos,game_brps,game_pd]
+    gamedict = {'matrix_bos':game_bos, 'matrix_brps':game_brps, 'matrix_pd':game_pd, 'matrix_sub':game_sub,'matrix_rps':game_brps}
+    algorithmdict = {"Q":"e-greedy","LB":"lenient boltzmann","B":"boltzmann"}
 
-    algorithms = ["e-greedy","lenient boltzmann"]
+    #plot_replicator_dynamics_2x2(game_sub)
+    #plot_replicator_dynamics_rps(game_rps)
+    #plot_replicator_dynamics_2x2(game_bos)
+    #plot_replicator_dynamics_2x2(game_pd)
 
-    plot_replicator_dynamics_2x2(game_sub)
-    plot_replicator_dynamics_rps(game_rps)
-    plot_replicator_dynamics_2x2(game_bos)
-    plot_replicator_dynamics_2x2(game_pd)
+    current_directory_path = os.getcwd()
+    data_path = os.path.join(current_directory_path,'task2','resultaten_reduced.json')
+    f = open(data_path,encoding='utf-8')
+    data = json.load(f)
 
-    for alg in algorithms:
-        for game in games:
+    for game in data:
+        print(gamedict[game].get_type().long_name)
+        for alg in data[game]:
+            if data[game][alg] != []:
+                if algorithmdict[alg] == "e-greedy":
+                    trajectories = []
+                    trajectories.append(data[game][alg][0]["data"])
+                    trajectories.append(data[game][alg][4]["data"])
+                    trajectories.append(data[game][alg][9]["data"])
+
+                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
+                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
+
+
+                elif algorithmdict[alg] == "boltzmann":
+                    trajectories = []
+                    trajectories.append(data[game][alg][0]["data"])
+                    trajectories.append(data[game][alg][4]["data"])
+                    trajectories.append(data[game][alg][9]["data"])
+
+                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
+                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
+
+
+                elif algorithmdict[alg] == "lenient boltzmann":
+                    trajectories = []
+                    trajectories.append(data[game][alg][0]["data"])
+                    trajectories.append(data[game][alg][4]["data"])
+                    trajectories.append(data[game][alg][9]["data"])
+
+                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
+                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
+
+                else:
+                    raise ValueError("Unknown algorithm name")
+        #for game in games:
             # TODO Add training functions and assign history to a variable. 
             # TODO Multiple cases need to be added for multiple trajectory lines on plot.
-            trajectories = []
+        #    trajectories = []
             
             # Use dedicated plot function if Rock, Paper, Scissors
-            if game.get_type().long_name == "Rock, Paper, Scissors":
-                plot_trajectory_rps(game,alg,trajectories)
+        #    if game.get_type().long_name == "Rock, Paper, Scissors":
+        #        plot_trajectory_rps(game,alg,trajectories)
 
-            else:
-                plot_trajectory_2x2(game,alg,trajectories)
+        #    else:
+        #        plot_trajectory_2x2(game,alg,trajectories)
+
+    f.close()
         
    
 def plot_replicator_dynamics_rps(game):
@@ -131,11 +172,19 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist):
     subplt.quiver(repdyn,color='blue')
 
     # Plot trajectories
+    trajectorynr = 0
+    colordict = {1:'red',2:'black',3:'green'}
+
     for trajectory in trajectorylist:
+        trajectorynr += 1
+        
         for prob_hist in trajectory:
             x = [hist[0][0] for hist in prob_hist]
             y = [hist[1][0] for hist in prob_hist]
-            subplt.plot(x,y, color='black')
+
+            subplt.plot(x,y,'-',alpha=0.5,color=colordict[trajectorynr])
+            subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
+            subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
    
     subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
     plt.xlim(-0.01,1.01)
@@ -316,5 +365,5 @@ def main2():
     print(f"dict written to {filename}")
 
 
-# main()
-main2()   
+main()
+# main2()   
