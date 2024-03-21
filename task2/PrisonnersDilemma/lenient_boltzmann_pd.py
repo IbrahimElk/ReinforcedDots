@@ -7,7 +7,7 @@ import numpy as np
 from open_spiel.python import rl_tools
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import random_agent
-from lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
 
 def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
   """Evaluates `trained_agents` against `random_agents` for `num_episodes`."""
@@ -36,7 +36,7 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
 
 
 def main(_):
-    game = "matrix_bos"
+    game = "matrix_pd"
     num_players = 2
 
     env = rl_environment.Environment(game)
