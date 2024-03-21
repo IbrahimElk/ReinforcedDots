@@ -49,8 +49,8 @@ def main():
                 if algorithmdict[alg] == "e-greedy":
                     trajectories = []
                     trajectories.append(data[game][alg][0]["data"])
-                    trajectories.append(data[game][alg][4]["data"])
-                    trajectories.append(data[game][alg][9]["data"])
+                    trajectories.append(data[game][alg][1]["data"])
+                    trajectories.append(data[game][alg][2]["data"])
 
                     if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
                         plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
@@ -59,8 +59,8 @@ def main():
                 elif algorithmdict[alg] == "boltzmann":
                     trajectories = []
                     trajectories.append(data[game][alg][0]["data"])
-                    trajectories.append(data[game][alg][4]["data"])
-                    trajectories.append(data[game][alg][9]["data"])
+                    trajectories.append(data[game][alg][1]["data"])
+                    trajectories.append(data[game][alg][2]["data"])
 
                     if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
                         plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
@@ -70,7 +70,7 @@ def main():
                     trajectories = []
                     trajectories.append(data[game][alg][0]["data"])
                     trajectories.append(data[game][alg][4]["data"])
-                    trajectories.append(data[game][alg][9]["data"])
+                    trajectories.append(data[game][alg][8]["data"])
 
                     if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
                         plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
@@ -170,7 +170,7 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist):
             x = [hist[0][0] for hist in prob_hist]
             y = [hist[1][0] for hist in prob_hist]
 
-            subplt.plot(x,y,'-',alpha=0.5,color=colordict[trajectorynr])
+            subplt.scatter(x,y,'-',alpha=0.5,color=colordict[trajectorynr])
             subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
             subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
    
