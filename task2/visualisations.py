@@ -42,41 +42,71 @@ def main():
     f = open(data_path,encoding='utf-8')
     data = json.load(f)
 
+    # [[actie 1 prob,actie 2 prob], [actie 1 prob,actie 2 prob]]
+    # enkel actie 1 prob van beide spelers nodig
+
     for game in data:
         print(gamedict[game].get_type().long_name)
-        for alg in data[game]:
-            if data[game][alg] != []:
-                if algorithmdict[alg] == "e-greedy":
-                    trajectories = []
-                    trajectories.append(data[game][alg][0]["data"])
-                    trajectories.append(data[game][alg][1]["data"])
-                    trajectories.append(data[game][alg][2]["data"])
-
-                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
-                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
-
-
-                elif algorithmdict[alg] == "boltzmann":
-                    trajectories = []
-                    trajectories.append(data[game][alg][0]["data"])
-                    trajectories.append(data[game][alg][1]["data"])
-                    trajectories.append(data[game][alg][2]["data"])
-
-                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
-                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
+        
+        for alg in data[game]:            
+            parameterlist = []
+            
+            if algorithmdict[alg] == "e-greedy":
+                parameters = []
+                parameters.append(data[game][alg][0]["data"])
+                parameters.append(data[game][alg][1]["data"])
+                parameters.append(data[game][alg][2]["data"])
+                
+                parameterlist.append(['epsilon = ' + str(data[game][alg][0]["epsilon"])])
+                parameterlist.append(['epsilon = ' + str(data[game][alg][1]["epsilon"])])
+                parameterlist.append(['epsilon = ' + str(data[game][alg][2]["epsilon"])])
 
 
-                elif algorithmdict[alg] == "lenient boltzmann":
-                    trajectories = []
-                    trajectories.append(data[game][alg][0]["data"])
-                    trajectories.append(data[game][alg][4]["data"])
-                    trajectories.append(data[game][alg][8]["data"])
+            elif algorithmdict[alg] == "boltzmann":
+                parameters = []
+                parameters.append(data[game][alg][0]["data"])
+                parameters.append(data[game][alg][1]["data"])
+                parameters.append(data[game][alg][2]["data"])
 
-                    if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
-                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectories)
+                parameterlist.append(['temperature = ' + str(data[game][alg][0]["temperature"])])
+                parameterlist.append(['temperature = ' + str(data[game][alg][1]["temperature"])])
+                parameterlist.append(['temperature = ' + str(data[game][alg][2]["temperature"])])
 
-                else:
-                    raise ValueError("Unknown algorithm name")
+
+            elif algorithmdict[alg] == "lenient boltzmann":
+                parameters = []
+                parameters.append(data[game][alg][0]["data"])
+                parameters.append(data[game][alg][4]["data"])
+                parameters.append(data[game][alg][8]["data"])
+
+                il = []
+                il.append('kappa = ' + str(data[game][alg][0]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][0]["temperature"]))
+                parameterlist.append(il)
+                il = []
+                il.append('kappa = ' + str(data[game][alg][4]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][4]["temperature"]))
+                parameterlist.append(il)
+                il = []
+                il.append('kappa = ' + str(data[game][alg][8]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][8]["temperature"]))
+                parameterlist.append(il)
+
+
+
+            else:
+                raise ValueError("Unknown algorithm name")
+            
+            
+            # Decide which plot function to use.
+            if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
+                    ctr = 0
+                    for trajectorylist in parameters:
+                        plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectorylist,parameterlist[ctr])
+                        ctr += 1
+
+            else:
+                plot_trajectory_rps(gamedict[game],algorithmdict[alg],trajectorylist,parameterlist)
 
     f.close()
         
@@ -107,7 +137,7 @@ def plot_replicator_dynamics_rps(game):
     rpdyn.set_title(f"Directional field plot: {game.get_type().long_name}")
     filepath = os.path.join(subfolder_path,"dir_field_plot_" + game.get_type().short_name +".png")
     plt.savefig(filepath)
-    plt.show()
+    #plt.show()
 
 def plot_replicator_dynamics_2x2(game):
     """
@@ -137,14 +167,16 @@ def plot_replicator_dynamics_2x2(game):
     rpdyn.set_title(f"Directional field plot: {game.get_type().long_name}")
     filepath = os.path.join(subfolder_path,"dir_field_plot_" + game.get_type().short_name +".png")
     plt.savefig(filepath)
-    plt.show()
+    #plt.show()
 
-def plot_trajectory_2x2(game,alg:str,trajectorylist):
+def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
     """
     Plots possible trajectories for a given 2x2 matrix game using a , 
     by providing a list of trajectories containing the history of the 
     states achieved during the self-play.
     """
+    trajectorylist = trajectorylist[0][2:]
+    
     current_directory_path = os.getcwd()
     subfolder_path = os.path.join(current_directory_path,'task2','images')
     if not os.path.exists(subfolder_path):
@@ -165,25 +197,27 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist):
 
     for trajectory in trajectorylist:
         trajectorynr += 1
-        
-        for prob_hist in trajectory:
-            x = [hist[0][0] for hist in prob_hist]
-            y = [hist[1][0] for hist in prob_hist]
+        x = []
+        y = []
 
-            subplt.scatter(x,y,'-',alpha=0.5,color=colordict[trajectorynr])
-            subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
-            subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
+        for prob_hist in trajectory:
+            x.append(prob_hist[0][0])
+            y.append(prob_hist[1][0])
+        
+        subplt.plot(x,y,'-',alpha=0.5,color=colordict[trajectorynr])
+        subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
+        subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
    
-    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
+    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg} ({stringify_list(parameterlist)}).")
     plt.xlim(-0.01,1.01)
     plt.ylim(-0.01,1.01)
     plt.xlabel(f"P({game.row_action_name(0)}) Agent 1")
     plt.ylabel(f"P({game.row_action_name(0)}) Agent 2")
-    filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + ".png")
+    filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + stringify_list(parameterlist) + ".png")
     plt.savefig(filepath)
-    plt.show()
+    #plt.show()
 
-def plot_trajectory_rps(game,alg:str,trajectorylist):
+def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
     """
     Plots possible trajectories for the requested rock, paper, scissors game using a , 
     by providing a list of trajectories containing the history of the 
@@ -352,6 +386,15 @@ def main2():
 
     print(f"dict written to {filename}")
 
+def stringify_list(lst:list):
+    """
+    Converts a list of strings to a single string.
+    """
+    result = ""
+    for i in lst:
+        result += str(i) + " "
+    
+    return result
 
 main()
 # main2()   
