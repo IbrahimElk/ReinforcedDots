@@ -5,7 +5,7 @@ import numpy as np
 from open_spiel.python import rl_tools
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import random_agent
-from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+from lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
 
 def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
   """Evaluates `trained_agents` against `random_agents` for `num_episodes`."""
@@ -19,7 +19,7 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
     for _ in range(num_episodes):
       time_step = env.reset()
       while not time_step.last():
-        traiend_agent_output = cur_agents[player_pos].step(time_step,None, is_evaluation=True)
+        traiend_agent_output = cur_agents[player_pos].step(time_step, is_evaluation=True)
         random_agent_output = cur_agents[1-player_pos].step(time_step, is_evaluation=True)
         time_step = env.step([traiend_agent_output.action,random_agent_output.action])
 
@@ -55,18 +55,17 @@ def main(_):
     training_episodes = 10**5
     kappa = 15
     for cur_episode in range(training_episodes):
-        if cur_episode % int(1e4) == 0:
+        if cur_episode % int(25000) == 0:
             win_rates = eval_against_random_bots(env, [wife, husband], random_agents, 1000)
             logging.info("Starting episode %s, win_rates %s", cur_episode, win_rates)
         time_step = env.reset()
         while not time_step.last():
-            wife_output = wife.step(time_step,kappa)
-            husband_output = husband.step(time_step,kappa)
-            
+            wife_output = wife.step(time_step)
+            husband_output = husband.step(time_step)
             time_step = env.step([wife_output.action,husband_output.action])
 
-        wife.step(time_step, kappa)
-        husband.step(time_step, kappa)
+        wife.step(time_step)
+        husband.step(time_step)
         
     print("")
     print(env.get_state)

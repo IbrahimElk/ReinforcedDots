@@ -1,6 +1,6 @@
 import pyspiel
 
-from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+from lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
 from open_spiel.python import rl_environment
 
 
@@ -27,11 +27,11 @@ for cur_episode in range(EPISODES):
         print(f'Episodes: {cur_episode}')
     time_step = env.reset()
     while not time_step.last():
-        agent_outputs = [agent.step(time_step, kappa) for agent in agents]
+        agent_outputs = [agent.step(time_step) for agent in agents]
         #state_hist.append([agent_output.probs for agent_output in agent_outputs])
         time_step = env.step([agent_output.action for agent_output in agent_outputs])
     for agent in agents:
-        agent.step(time_step,kappa)
+        agent.step(time_step)
 
 print("Training done!")
 
@@ -41,7 +41,7 @@ time_step = env.reset()
 while not time_step.last():
     print("")
     print(env.get_state)
-    agent_actions = [agent.step(time_step,None, is_evaluation=True).action for agent in agents]
+    agent_actions = [agent.step(time_step, is_evaluation=True).action for agent in agents]
     print(agent_actions)
 
     actions = []
