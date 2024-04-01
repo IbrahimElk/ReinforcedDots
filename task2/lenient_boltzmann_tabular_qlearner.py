@@ -80,7 +80,6 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		else:
 			info_state = str(time_step.observations["info_state"][self._player_id])
 		legal_actions = time_step.observations["legal_actions"][self._player_id]
-
 		# Prevent undefined errors if this agent never plays until terminal step
 		action, probs = None, None
 
