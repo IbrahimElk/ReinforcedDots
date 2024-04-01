@@ -13,7 +13,7 @@ import pyspiel
 from open_spiel.python import rl_tools, rl_agent
 from open_spiel.python.algorithms.tabular_qlearner import QLearner
 from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
-from algorithms.lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+from lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
 
 def main():
     """
@@ -38,7 +38,7 @@ def main():
     plot_replicator_dynamics_2x2(game_pd)
 
     current_directory_path = os.getcwd()
-    data_path = os.path.join(current_directory_path,'task2','data.json')
+    data_path = os.path.join(current_directory_path,'','data2.json')
     f = open(data_path,encoding='utf-8')
     data = json.load(f)
 
@@ -75,21 +75,24 @@ def main():
 
             elif algorithmdict[alg] == "lenient boltzmann":
                 parameters = []
-                parameters.append(data[game][alg][0]["data"])
+                print(data[game][alg][3]["kappa"])
+                print(data[game][alg][4]["kappa"])
+                print(data[game][alg][5]["kappa"])
+                parameters.append(data[game][alg][3]["data"])
                 parameters.append(data[game][alg][4]["data"])
-                parameters.append(data[game][alg][8]["data"])
-
+                parameters.append(data[game][alg][5]["data"])
+                
                 il = []
-                il.append('kappa = ' + str(data[game][alg][0]["kappa"]))
-                il.append('temperature = ' + str(data[game][alg][0]["temperature"]))
+                il.append('kappa = ' + str(data[game][alg][3]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][3]["temperature"]))
                 parameterlist.append(il)
                 il = []
                 il.append('kappa = ' + str(data[game][alg][4]["kappa"]))
                 il.append('temperature = ' + str(data[game][alg][4]["temperature"]))
                 parameterlist.append(il)
                 il = []
-                il.append('kappa = ' + str(data[game][alg][8]["kappa"]))
-                il.append('temperature = ' + str(data[game][alg][8]["temperature"]))
+                il.append('kappa = ' + str(data[game][alg][5]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][5]["temperature"]))
                 parameterlist.append(il)
 
 
@@ -119,7 +122,7 @@ def plot_replicator_dynamics_rps(game):
     Plots the replicator dynamics for a given rock, paper, scissor matrix game.
     """
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    subfolder_path = os.path.join(current_directory_path,'task2','figures')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -147,7 +150,7 @@ def plot_replicator_dynamics_2x2(game):
     Plots the replicator dynamics for a given 2x2 matrix game.
     """
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    subfolder_path = os.path.join(current_directory_path,'task2','figures')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -181,7 +184,7 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
     trajectorylist = trajectorylist[0][2:]
     
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    subfolder_path = os.path.join(current_directory_path,'task2','figures')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -228,7 +231,7 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
     """
     trajectorylist = trajectorylist[0][2:]
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','images')
+    subfolder_path = os.path.join(current_directory_path,'task2','figures')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -260,7 +263,7 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
     subplt.set_labels(["Rock", "Paper", "Scissors"])
     filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + stringify_list(parameterlist) + ".png")
     plt.savefig(filepath)
-    #plt.show()
+    # plt.show()
 
 
 def train_agents(
@@ -281,7 +284,7 @@ def train_agents(
             print("Starting episode : ", cur_episode)
 
         # de eerste 100 episodes opslaan.
-        if cur_episode < 100:
+        if cur_episode % 5 == 0 :
             points.append((list(player1_output.probs),list(player2_output.probs)))
 
         player1.step(time_step)
@@ -305,7 +308,7 @@ def get_all_red_lines(
     multiple_lines_per_learner = []
     for i in range(num_lines):
         [agent1, agent2] = get_correct_agents(method, num_players, num_actions, temperature, Kappa)
-        red_line = train_agents(agent1,agent2,game=game, training_episodes=100)
+        red_line = train_agents(agent1,agent2,game=game, training_episodes=1000)
         multiple_lines_per_learner.append(red_line)
 
     return multiple_lines_per_learner, 
@@ -372,7 +375,7 @@ def record_results(game_name, dict_q_learning):
         for temperature in [0.2, 1, 5]:
             lijst = get_all_red_lines(method="LB",
                                 num_lines=5, 
-                                temperature=epsilon, 
+                                temperature=temperature, 
                                 Kappa=Kappa, 
                                 game=game_name)
             dict_q_learning[game_name]["LB"].append({"kappa": Kappa,
@@ -402,5 +405,5 @@ def stringify_list(lst:list):
     
     return result
 
-# main()
-main2()   
+main()
+# main2()   
