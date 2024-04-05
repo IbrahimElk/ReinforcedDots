@@ -265,10 +265,20 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
     plt.savefig(filepath)
     # plt.show()
 
+def stringify_list(lst:list):
+    """
+    Converts a list of strings to a single string.
+    """
+    result = ""
+    for i in lst:
+        result += str(i) + " "
+    
+    return result
+
 
 def train_agents(
-                 player1:rl_agent.AbstractAgent, 
-                 player2:rl_agent.AbstractAgent,
+                 player1: rl_agent.AbstractAgent, 
+                 player2: rl_agent.AbstractAgent,
                  game = "matrix_bos", 
                  training_episodes = 25000):
     points = []
@@ -294,40 +304,61 @@ def train_agents(
 
 def get_all_red_lines(
         method:str,
+        starting_probs:tuple[float,float],
         num_lines:int=5,
         temperature:float=0.2,
         Kappa:int = 15,
         game = "matrix_bos"):
 
-    num_players = 2
     if game == "matrix_sub": 
         game = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"], [[12,0], [11,10]], [[12,11], [0,10]])
+    
     env = rl_environment.Environment(game)    
     num_actions = env.action_spec()["num_actions"]
 
-    multiple_lines_per_learner = []
-    for i in range(num_lines):
-        [agent1, agent2] = get_correct_agents(method, num_players, num_actions, temperature, Kappa)
-        red_line = train_agents(agent1,agent2,game=game, training_episodes=1000)
-        multiple_lines_per_learner.append(red_line)
+    lijst = []
+    for j in starting_probs: 
+        # TODO: probleem, bprs heeft 3 acties, dus 3 probabiliteiten nodig.
 
-    return multiple_lines_per_learner, 
+        prob1 = j 
+        prob2 = 1 - j
+        multiple_lines_per_learner = []
+        for i in range(num_lines):
+            [agent1, agent2] = get_correct_agents(method, [prob1,prob2], num_actions, temperature, Kappa)
+            red_line = train_agents(agent1, agent2, game=game, training_episodes=1000)
+            multiple_lines_per_learner.append(red_line)
+        
+        mean_line = mean_elementwise(multiple_lines_per_learner)
+        startingposition = {
+            "starting_position: " : [prob1, prob2],
+            "line: " : mean_line
+        }
+        lijst.append(startingposition)
+    return lijst
 
-def get_correct_agents(method:str, num_players, num_actions, temperature, kappa):
+def mean_elementwise(nested_list):
+    mean_values = [sum(values) / len(values) for values in zip(*nested_list)]
+    return mean_values
+
+def get_correct_agents(method:str, init_probs, num_actions, temperature, kappa):
+    num_players = 2
+
     agents = []
     match method:
         case "Q":
             agents =[
                 QLearner(player_id=idx, 
                         num_actions=num_actions, 
-                        epsilon_schedule=rl_tools.ConstantSchedule(temperature))
+                        epsilon_schedule=rl_tools.ConstantSchedule(temperature),
+                        init_probs=init_probs)
                 for idx in range(num_players)
             ]
         case "B" : 
             agents =[
                 BoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                temperature_schedule=rl_tools.ConstantSchedule(temperature))
+                                temperature_schedule=rl_tools.ConstantSchedule(temperature),
+                                init_probs=init_probs)
                 for idx in range(num_players)
             ]
         case "LB" : 
@@ -335,7 +366,8 @@ def get_correct_agents(method:str, num_players, num_actions, temperature, kappa)
                 LenientBoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
                                 temperature_schedule=rl_tools.ConstantSchedule(temperature),
-                                kappa=kappa)
+                                kappa=kappa,
+                                init_probs=init_probs)
                 for idx in range(num_players)
             ]
         case _: 
@@ -345,23 +377,27 @@ def get_correct_agents(method:str, num_players, num_actions, temperature, kappa)
 def record_results(game_name, dict_q_learning):
     dict_q_learning[game_name] = {"Q": [], "B": [], "LB":[]}
 
+    starting_pos = [0, 0.2, 0.4, 0.6, 0.8, 1]
+
     # STANDAARD Q LEARNING:
     epsilon_values = [0.2, 0.5, 0.7]
     for epsilon in epsilon_values:
         lijst   = get_all_red_lines(method="Q",
-                            num_lines=5, 
-                            temperature=epsilon, 
-                            Kappa=1, # heeft geen invloed, is enkel van invloed voor lenient boltzmann agent.
-                            game=game_name)
+                                    num_lines=5,
+                                    starting_probs=starting_pos, 
+                                    temperature=epsilon, 
+                                    Kappa=1, # heeft geen invloed, is enkel van invloed voor lenient boltzmann agent.
+                                    game=game_name)
         
+        # TODO: multiple starting positions, all with num_lines = 5 to take the average. 
         dict_q_learning[game_name]["Q"].append({"epsilon": epsilon, 
                                                 "num_lines": 5, 
                                                 "data": lijst})
-
     # # TRADITIONAL BOLtZMANN Q LEARNING
     for temperature in [0.2, 1, 5]: # FIXME: dit interval gekozen, maar nergens opt intenret een aanrader voor interval waarden...
         lijst   = get_all_red_lines(method="B",
-                            num_lines=5, 
+                            num_lines=5,
+                            starting_probs=starting_pos, 
                             temperature=temperature, 
                             Kappa=1, 
                             game=game_name)
@@ -375,6 +411,7 @@ def record_results(game_name, dict_q_learning):
         for temperature in [0.2, 1, 5]:
             lijst = get_all_red_lines(method="LB",
                                 num_lines=5, 
+                                starting_probs=starting_pos,
                                 temperature=temperature, 
                                 Kappa=Kappa, 
                                 game=game_name)
@@ -395,15 +432,5 @@ def main2():
 
     print(f"dict written to {filename}")
 
-def stringify_list(lst:list):
-    """
-    Converts a list of strings to a single string.
-    """
-    result = ""
-    for i in lst:
-        result += str(i) + " "
-    
-    return result
-
-main()
-# main2()   
+# main()
+main2()   
