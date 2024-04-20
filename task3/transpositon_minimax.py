@@ -2,9 +2,9 @@ import pyspiel
 import hashlib
 import numpy as np
 from absl import app
+from transposition_table import Transposition_Table
 
-
-def _minimax(state, maximizing_player_id, cache):
+def _minimax(state, maximizing_player_id, cache:Transposition_Table):
     """
     Implements a min-max algorithm
 
@@ -16,13 +16,13 @@ def _minimax(state, maximizing_player_id, cache):
     Returns:
       The optimal value of the sub-game starting in state
     """
-
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
 
     hashed_key = hash_state(state)
-    if in_cache(hashed_key, cache):
-        return cashed_value(hashed_key, cache)
+    val = cache.get(hashed_key)
+    if val != None:
+        return val
 
     player = state.current_player()
     if player == maximizing_player_id:
@@ -37,7 +37,7 @@ def _minimax(state, maximizing_player_id, cache):
         values_children.append(value)
     
     minimax_value = selection(values_children)
-    store_cache(hashed_key, minimax_value, cache)
+    cache.set(hashed_key, minimax_value)
 
     return minimax_value
 
@@ -69,12 +69,9 @@ def cashed_value(hashed_key, cache):
 def store_cache(hashed_state, minimaxvalue, cache):
     cache[hashed_state] = minimaxvalue
 
-def minimax_search(game,
-                   num_rows:int,
-                   num_cols:int,
+def minimax_transposition_search(game,
                    state=None,
-                   maximizing_player_id=None,
-                   state_to_key=lambda state: state):
+                   maximizing_player_id=None):
     """Solves deterministic, 2-players, perfect-information 0-sum game.
 
     For small games only! Please use keyword arguments for optional arguments.
@@ -112,12 +109,13 @@ def minimax_search(game,
         maximizing_player_id = state.current_player()
 
     # FIXME: no need for initial matrix to be stored in transposition table ?
-    tranpostion_table = {}
+    transposition_table = Transposition_Table()
+    
     v = _minimax(
         state.clone(),
         maximizing_player_id=maximizing_player_id, 
-        cache=tranpostion_table)
-    return v
+        cache=transposition_table)
+    return transposition_table, v
 
 
 def main(_):
@@ -130,7 +128,7 @@ def main(_):
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
     
-    value = minimax_search(game, num_rows, num_cols)
+    value = minimax_transposition_search(game, num_rows, num_cols)
 
     if value == 0:
         print("It's a draw")
