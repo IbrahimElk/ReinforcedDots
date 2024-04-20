@@ -1,8 +1,9 @@
 import pyspiel
 from absl import app
+from transposition_table import Transposition_Table
 
 
-def _minimax(state, maximizing_player_id):
+def _minimax(state, maximizing_player_id, cache:Transposition_Table):
     """
     Implements a min-max algorithm
 
@@ -18,16 +19,22 @@ def _minimax(state, maximizing_player_id):
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
 
+    hashed_key = state.dbn_string()
+    val = cache.get(hashed_key)
+    if val != None:
+        return val
+
     player = state.current_player()
     if player == maximizing_player_id:
         selection = max
     else:
         selection = min
-    values_children = [_minimax(state.child(action), maximizing_player_id) for action in state.legal_actions()]
+    values_children = [_minimax(state.child(action), maximizing_player_id , cache) for action in state.legal_actions()]
+    
     return selection(values_children)
 
 
-def minimax_search(game,
+def minimax_naive_search(game,
                    state=None,
                    maximizing_player_id=None,
                    state_to_key=lambda state: state):
@@ -66,21 +73,24 @@ def minimax_search(game,
         state = game.new_initial_state()
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
+
+    tt = Transposition_Table()
     v = _minimax(
         state.clone(),
-        maximizing_player_id=maximizing_player_id)
-    return v
+        maximizing_player_id=maximizing_player_id,
+        cache=tt)
+    return tt, v
 
 
 def main(_):
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    game_string = "dots_and_boxes(num_rows=2,num_cols=2)"
+    game_string = "dots_and_boxes(num_rows=7,num_cols=7)"
 
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
 
-    value = minimax_search(game)
+    value = minimax_naive_search(game)
 
     if value == 0:
         print("It's a draw")
