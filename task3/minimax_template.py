@@ -75,7 +75,7 @@ def minimax_search(game,
 def main(_):
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    game_string = "dots_and_boxes(num_rows=2,num_cols=2)"
+    game_string = "dots_and_boxes(num_rows=7,num_cols=7)"
 
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)

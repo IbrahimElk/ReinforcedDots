@@ -4,7 +4,7 @@ import numpy as np
 from absl import app
 
 
-def _minimax(state, num_rows, num_cols, maximizing_player_id, cache):
+def _minimax(state, maximizing_player_id, cache):
     """
     Implements a min-max algorithm
 
@@ -20,7 +20,7 @@ def _minimax(state, num_rows, num_cols, maximizing_player_id, cache):
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
 
-    hashed_key = hash_state(state,num_rows,num_cols)
+    hashed_key = hash_state(state)
     if in_cache(hashed_key, cache):
         return cashed_value(hashed_key, cache)
 
@@ -33,7 +33,7 @@ def _minimax(state, num_rows, num_cols, maximizing_player_id, cache):
     values_children = []
     for action in state.legal_actions():
         child_state = state.child(action)
-        value = _minimax(child_state, num_rows, num_cols, maximizing_player_id, cache)
+        value = _minimax(child_state, maximizing_player_id, cache)
         values_children.append(value)
     
     minimax_value = selection(values_children)
@@ -44,19 +44,23 @@ def _minimax(state, num_rows, num_cols, maximizing_player_id, cache):
 def in_cache(hashed_state, cache):
     return hashed_state in cache
 
-def hash_state(state, num_rows, num_cols):
-    state_info = state.observation_tensor()
-    num_cells = ((1 + num_rows) * (1 + num_cols))
+def hash_state(state):
+    hash_hex = state.dbn_string()
+    # params = state.get_game().get_parameters()
+    # num_rows = params['num_rows']
+    # num_cols = params['num_cols']
+    # state_info = state.observation_tensor()
+    # num_cells = ((1 + num_rows) * (1 + num_cols))
     
-    np_state_info = np.array(state_info)
-    state_matrix = np_state_info.reshape(3, num_cells, 3)
-    filtered_state_matrix = np.stack([state_matrix[:,:,0], state_matrix[:,:,1]], axis=-1)
-    filtered_state_matrix = filtered_state_matrix.astype(int)
-    merged_array = np.bitwise_or(filtered_state_matrix[1], filtered_state_matrix[2])
+    # np_state_info = np.array(state_info)
+    # state_matrix = np_state_info.reshape(3, num_cells, 3)
+    # filtered_state_matrix = np.stack([state_matrix[:,:,0], state_matrix[:,:,1]], axis=-1)
+    # filtered_state_matrix = filtered_state_matrix.astype(int)
+    # merged_array = np.bitwise_or(filtered_state_matrix[1], filtered_state_matrix[2])
 
-    arr_bytes = merged_array.tobytes()
-    hash_object = hashlib.sha256(arr_bytes)
-    hash_hex = hash_object.hexdigest()
+    # arr_bytes = merged_array.tobytes()
+    # hash_object = hashlib.sha256(arr_bytes)
+    # hash_hex = hash_object.hexdigest()
     return hash_hex
 
 def cashed_value(hashed_key, cache):
@@ -107,12 +111,10 @@ def minimax_search(game,
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
 
+    # FIXME: no need for initial matrix to be stored in transposition table ?
     tranpostion_table = {}
-    # FIXME: no need for initial matrix to be stored in transposition table ig ?
     v = _minimax(
         state.clone(),
-        num_rows, 
-        num_cols,
         maximizing_player_id=maximizing_player_id, 
         cache=tranpostion_table)
     return v
@@ -121,8 +123,8 @@ def minimax_search(game,
 def main(_):
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    num_rows = 2
-    num_cols = 2
+    num_rows = 7
+    num_cols = 7
     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))
