@@ -39,6 +39,11 @@ import psutil
 # this means that the minimax will not be optimal. 
 # how good is it though ? by playing the game 50 times , how many times dod minimax win ? bv. 
 
+# TODO:
+# resultaten van tijd en nb_keys kun je dan vergelijken met 
+# de resultaten van de paper "Solving Dots-And-Boxes Joseph K. Barker and Richard E Korf"
+# die gegeven was door de prof. 
+
 # -----------------------------------------------------------------------------
 # GOAL:
 # Use these the three optimizations (transposition table, symmetry and chains)
