@@ -1,5 +1,5 @@
 from transposition_table import TChains_Table
-from template_minimax import _minimax
+from minimax.template_minimax import _minimax
 import pyspiel
 
 # evaluate a game state in terms of chainss

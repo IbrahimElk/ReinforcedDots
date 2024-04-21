@@ -1,5 +1,6 @@
-from minimax.symmetry_minimax import find_representative
-from minimax.chains_minimax import extract_chain_info
+# from minimax.symmetry_minimax import find_representative
+# from minimax.chains_minimax import chain_heuristic
+
 
 class Transposition_Table:
     def __init__(self):
@@ -46,22 +47,30 @@ class TChains_Table(Transposition_Table):
         # change state representation
         # gebruik args argumetn bv. 
         # bv. aantal chains in state = chains_info 
-        chains_info = extract_chain_info(state)
+        # chains_info = chain_heuristic(state)
+
+        # temp:
         hash_hex = state.dbn_string()
         return hash_hex
     
 class TSymmetric_Table(Transposition_Table):
     # TODO:
     def _hash_state(self, state):
-        symmetric_state = find_representative(state)
-        hash_hex = symmetric_state.dbn_string()
+        # symmetric_state = find_representative(state)
+        # hash_hex = symmetric_state.dbn_string()
+        
+        # temp:
+        hash_hex = state.dbn_string()
         return hash_hex
 
 class TTable(Transposition_Table):
     # TODO:
     def _hash_state(self, state):
-        chains_info = extract_chain_info(state)
-        symmetric_state = find_representative(state)
-        hash_hex = symmetric_state.dbn_string()
+        # chains_info = chain_heuristic(state)
+        # symmetric_state = find_representative(state)
+        # hash_hex = symmetric_state.dbn_string()
+        
+        # temp:
+        hash_hex = state.dbn_string()
         return hash_hex
     
