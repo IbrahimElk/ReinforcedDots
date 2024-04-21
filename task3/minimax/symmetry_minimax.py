@@ -1,4 +1,4 @@
-from transpositon_minimax import _minimax
+from minimax.transpositon_minimax import _minimax
 from transposition_table import TSymmetric_Table
 import pyspiel
 
