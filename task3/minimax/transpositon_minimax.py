@@ -2,7 +2,6 @@ import pyspiel
 from absl import app
 from transposition_table import Transposition_Table
 
-
 def _minimax(state, maximizing_player_id, cache:Transposition_Table):
     """
     Implements a min-max algorithm
@@ -15,12 +14,10 @@ def _minimax(state, maximizing_player_id, cache:Transposition_Table):
     Returns:
       The optimal value of the sub-game starting in state
     """
-
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
 
-    hashed_key = state.dbn_string()
-    val = cache.get(hashed_key)
+    val = cache.get(state)
     if val != None:
         return val
 
@@ -29,15 +26,21 @@ def _minimax(state, maximizing_player_id, cache:Transposition_Table):
         selection = max
     else:
         selection = min
-    values_children = [_minimax(state.child(action), maximizing_player_id , cache) for action in state.legal_actions()]
+
+    values_children = []
+    for action in state.legal_actions():
+        child_state = state.child(action)
+        value = _minimax(child_state, maximizing_player_id, cache)
+        values_children.append(value)
     
-    return selection(values_children)
+    minimax_value = selection(values_children)
+    cache.set(state, minimax_value)
 
+    return minimax_value
 
-def minimax_naive_search(game,
+def minimax_transposition_search(game,
                    state=None,
-                   maximizing_player_id=None,
-                   state_to_key=lambda state: state):
+                   maximizing_player_id=None):
     """Solves deterministic, 2-players, perfect-information 0-sum game.
 
     For small games only! Please use keyword arguments for optional arguments.
@@ -74,30 +77,34 @@ def minimax_naive_search(game,
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
 
-    tt = Transposition_Table()
+    # FIXME: no need for initial matrix to be stored in transposition table ?
+    transposition_table = Transposition_Table()
+    
     v = _minimax(
         state.clone(),
-        maximizing_player_id=maximizing_player_id,
-        cache=tt)
-    return tt, v
+        maximizing_player_id=maximizing_player_id, 
+        cache=transposition_table)
+    return transposition_table, v
 
 
 def main(_):
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    game_string = "dots_and_boxes(num_rows=7,num_cols=7)"
+    num_rows = 7
+    num_cols = 7
+    game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
-
-    value = minimax_naive_search(game)
+    
+    value = minimax_transposition_search(game, num_rows, num_cols)
 
     if value == 0:
         print("It's a draw")
     else:
         winning_player = 1 if value == 1 else 2
         print(f"Player {winning_player} wins.")
-
+ 
 
 if __name__ == "__main__":
     app.run(main)
