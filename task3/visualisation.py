@@ -122,7 +122,7 @@ def plot_htskeys(data):
                    ylabel="Number of Hits of Cache",
                    xlabel="Game Sizes",
                    legend="Algorithms",
-                   logy=False)
+                   logy=True)
     save_plot(plt, "number_hits")
 
 def plot_msdkeys(data):
@@ -143,7 +143,7 @@ def plot_msdkeys(data):
                    ylabel="Number of Misses of Cache",
                    xlabel="Game Sizes",
                    legend="Algorithms",
-                   logy=False)
+                   logy=True)
     save_plot(plt, "number_misses")
 
 
@@ -174,6 +174,8 @@ def plot_keys(data):
 
         plt.xlabel('Algorithms', fontsize=14)
         plt.ylabel('Count', fontsize=14)
+        plt.yscale('log')
+
         plt.xticks(index, algorithms, fontsize=12, rotation=45, ha='right')
         plt.title(f'Number of Keys, Hits, and Misses for Minimax Search in Game Size {game}', fontsize=16)
 
