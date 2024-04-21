@@ -34,6 +34,10 @@ import psutil
 # evaluate with self play and random agent ? 
 # to see how good it actually is, to see if it understands the concepts of chains etc
 # will be needed in the report!! 
+# like how many times did the minimax algorithm win against a random agent, how good is it? 
+# obviously, the minimax assumes that the opponent is rational, which the random agent is not, 
+# this means that the minimax will not be optimal. 
+# how good is it though ? by playing the game 50 times , how many times dod minimax win ? bv. 
 
 # -----------------------------------------------------------------------------
 # GOAL:
