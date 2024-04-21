@@ -1,22 +1,39 @@
-# from absl import app
-# from absl import flags
-# import numpy as np
 import time 
-import os 
-import json 
 
-from transpositon_minimax import minimax_transposition_search, Transposition_Table
-from symmetry_minimax import minimax_symmetry_search
-from chains_minimax import minimax_chains_search
-from template_minimax import minimax_naive_search
-from mixed_minimax import minimax_mixed_search
+# FIXME:
+# al de volgende assumes they have transposition table. 
+# dus je vergelijkt de toevoeging van symmerien, chains optimisaties tegenover de baseline
+# die enkel de transpostion table heeft. 
+# (adners is er niets te vergelijken want naive methode kan amper 2x2 oplossen.)
 
-# from open_spiel.python.bots import human
-# from open_spiel.python.bots import uniform_random
+from minimax.transpositon_minimax import minimax_transposition_search, Transposition_Table
+from minimax.symmetry_minimax import minimax_symmetry_search
+from minimax.chains_minimax import minimax_chains_search
+from minimax.template_minimax import minimax_naive_search
+from alphabeta_minimax import minimax_alphabeta_search
+
 import pyspiel
-
 import platform
 import psutil
+
+# Problem: timing only from initial state. 
+# TODO: 
+# get timing results for several empty boards (everage it out, and add std to barplot)
+# and 5 problems from (Berlekamp 2000).
+# 1) "110011000010100011000101"
+# 2) "111000000000010011110111"
+# 3) "111000000000010011110110"
+# 4) "111011000100100001010101"
+# 5) "011110011100101010011000"
+
+# TODO:
+# everythign together:
+# see file alphabeta_minimax.py 
+
+# TODO: 
+# evaluate with self play and random agent ? 
+# to see how good it actually is, to see if it understands the concepts of chains etc
+# will be needed in the report!! 
 
 # -----------------------------------------------------------------------------
 # GOAL:
@@ -25,10 +42,6 @@ import psutil
 # sizes, plot both the execution times and the number of keys.
 # -----------------------------------------------------------------------------
 
-# function signature for the minimax argument, should be the same for all!
-# def minimax_transposition_search(game,
-#                    state=None,
-#                    maximizing_player_id=None) -> tuple(int, Transposition_Table)
 def scrape_minimax(minimax, game, state):
     print(f"Utilising {minimax.__name__} algorithm")
 
@@ -55,7 +68,7 @@ def record_results(game, dict_results:dict):
             #   minimax_symmetry_search, 
             #   minimax_chains_search, 
               minimax_naive_search, 
-            #   minimax_mixed_search
+              minimax_alphabeta_search
               ]
     
     for optim in optims:
@@ -81,7 +94,8 @@ def initialise_report():
             "Max Frequency":    f"{cpufreq.max:.2f}Mhz",
             "Min Frequency":    f"{cpufreq.min:.2f}Mhz"
         }
-        
+
+        # TODO:
         # "memory_info" : {
             # todo
         # }
@@ -163,71 +177,3 @@ if __name__ == "__main__":
 
 
 
-
-
-# FLAGS = flags.FLAGS
-
-# flags.DEFINE_integer("seed", 12761381, "The seed to use for the RNG.")
-
-# # Supported types of players: "random", "human"
-# flags.DEFINE_string("player0", "random", "Type of the agent for player 0.")
-# flags.DEFINE_string("player1", "random", "Type of the agent for player 1.")
-
-
-# def LoadAgent(agent_type, player_id, rng):
-#   """Return a bot based on the agent type."""
-#   if agent_type == "random":
-#     return uniform_random.UniformRandomBot(player_id, rng)
-#   elif agent_type == "human":
-#     return human.HumanBot()
-#   else:
-#     raise RuntimeError("Unrecognized agent type: {}".format(agent_type))
-
-
-# def training(_):
-#     rng = np.random.RandomState(FLAGS.seed)
-#     games_list = pyspiel.registered_names()
-#     assert "dots_and_boxes" in games_list
-#     num_rows = 2
-#     num_cols = 2
-#     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
-
-#     print("Creating game: {}".format(game_string))
-#     game = pyspiel.load_game(game_string)
-
-#     agents = [
-#         LoadAgent(FLAGS.player0, 0, rng),
-#         LoadAgent(FLAGS.player1, 1, rng),
-#     ]
-
-#     state = game.new_initial_state()
-
-#     # Print the initial state
-#     print("INITIAL STATE")
-#     print(str(state))
-
-#     while not state.is_terminal():
-#         current_player = state.current_player()
-#         # Decision node: sample action for the single current player
-#         legal_actions = state.legal_actions()
-#         for action in legal_actions:
-#             print(
-#                 "Legal action: {} ({})".format(
-#                     state.action_to_string(current_player, action), action
-#                 )
-#             )
-#         action = agents[current_player].step(state)
-#         action_string = state.action_to_string(current_player, action)
-#         print("Player ", current_player, ", chose action: ", action_string)
-#         state.apply_action(action)
-
-#         print("")
-#         print("NEXT STATE:")
-#         print(str(state))
-#         if not state.is_terminal():
-#             print(str(state.observation_tensor()))
-
-#     # Game is now done. Print utilities for each player
-#     returns = state.returns()
-#     for pid in range(game.num_players()):
-#         print("Utility for player {} is {}".format(pid, returns[pid]))
