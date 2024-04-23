@@ -1,0 +1,3 @@
+# Therefore, we expect you to evaluate your agent
+# head-2-head against simple baselines including 
+# but not limited to random play, first open edge, ... 

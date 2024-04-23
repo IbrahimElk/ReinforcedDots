@@ -2,7 +2,7 @@ import pyspiel
 import numpy as np
 from transposition_table import TTable
 from minimax.chains_minimax import chain_heuristic
-
+from doc.doc import hash_state
 # TODO: output of evaluation function should it consider the output space of the terminal states? 
 # I don't think so.
 
@@ -39,12 +39,9 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TTable):
 
     if state.is_terminal():
-        # return state.player_return(maximizing_player_id), None
-        a, b = state.player_return(maximizing_player_id), None
-    # if depth == 0:
-        print("mag niet")
-        c,d = value_function(state, maximizing_player_id), None
-        return a,b
+        return state.player_return(maximizing_player_id), None
+    if depth == 0:
+        return value_function(state, maximizing_player_id), None
 
     player = state.current_player()
 
@@ -146,8 +143,8 @@ def minimax_alphabeta_search(game,
 def main():
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    num_rows = 1
-    num_cols = 1
+    num_rows = 2
+    num_cols = 2
     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))
