@@ -5,29 +5,34 @@ from minimax.chains_minimax import chain_heuristic
 
 # TODO: output of evaluation function should it consider the output space of the terminal states? 
 # I don't think so.
+
+# def points_player(state, maximizing_player_id): 
+#     params = state.get_game().get_parameters()
+#     num_rows = params['num_rows']
+#     num_cols = params['num_cols']
+#     num_dots = ((1 + num_rows) * (1 + num_cols))
+    
+#     state_info = state.observation_tensor()    
+#     np_state_info = np.array(state_info)
+    
+#     # {cellstates= (empty, player1, player2), num_cells , part_of_cell(horizontal, vertical, which_player_won) = 3},
+#     state_matrix = np_state_info.reshape(3, num_dots, 3)
+   
+#     player = state.current_player()
+#     points_empty = sum(state_matrix[0,:,2])
+#     points_player = sum(state_matrix[player+1,:,2])
+
+#     # maybe normalize the points to [-1 , 1] region?  
+#     if player == maximizing_player_id:
+#         return points_player
+#     else :
+#         total_amnt_boxes = num_rows * num_cols
+#         return total_amnt_boxes - (points_empty + points_player)
+
 def eval_function(state, maximizing_player_id):
-    params = state.get_game().get_parameters()
-    num_rows = params['num_rows']
-    num_cols = params['num_cols']
-    state_info = state.observation_tensor()
-    num_cells = ((1 + num_rows) * (1 + num_cols))
-    
-    np_state_info = np.array(state_info)
-    # {cellstates= (empty, player1, player2), num_cells , part_of_cell(horizontal, vertical, which_player_won) = 3},
-    state_matrix = np_state_info.reshape(3, num_cells, 3)
-    
-    player = state.current_player()
-    points_player = sum(state_matrix[player+1,:,2])
 
-    points_player2 = sum(state_matrix[1,:,2])
-    points_player3 = sum(state_matrix[2,:,2])
-    # print(num_cells)
-    print(points_player2 + points_player3 <= num_rows*num_cols)
-
-    if player == maximizing_player_id:
-        return points_player
-    else :
-        return -points_player
+    # player = state.current_player()
+    return 0
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TTable):
