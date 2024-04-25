@@ -1,5 +1,11 @@
+import os
+import sys
 import pyspiel
 from absl import app
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
 from dotsandboxes_agent.transposition_table import Transposition_Table, TNaive_Table
 
 def _minimax(state, maximizing_player_id, cache:Transposition_Table):

@@ -1,6 +1,12 @@
-from dotsandboxes_agent.minimax.transpositon_minimax import _minimax
-from dotsandboxes_agent.transposition_table import TSymmetric_Table
 import pyspiel
+import os
+import sys
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
+from transpositon_minimax import _minimax
+from dotsandboxes_agent.transposition_table import TSymmetric_Table
 
 # the implementation of this function will go to transposition_table.py
 # inside the hashstate function. 
