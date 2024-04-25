@@ -1,6 +1,12 @@
-from dotsandboxes_agent.transposition_table import TChains_Table
-from dotsandboxes_agent.minimax.template_minimax import _minimax
+import os
+import sys
 import pyspiel
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
+from dotsandboxes_agent.transposition_table import TChains_Table
+from template_minimax import _minimax
 
 # evaluate a game state in terms of chainss
 def chain_heuristic():

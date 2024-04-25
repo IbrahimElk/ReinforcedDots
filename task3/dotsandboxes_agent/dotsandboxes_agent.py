@@ -12,14 +12,16 @@ Copyright (c) 2022 KU Leuven. All rights reserved.
 import sys
 import logging
 import time
+import os
 import numpy as np
 import pyspiel
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
 from open_spiel.python.algorithms import evaluate_bots
-
-sys.path.append('../')
-
-from dotsandboxes_agent.transposition_table import TTable
-from dotsandboxes_agent.alphabeta_minimax import minimax_alphabeta_search 
+from alphabeta_minimax import minimax_alphabeta_search 
+from transposition_table import TTable
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
 
@@ -73,11 +75,8 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
+        # FIXME: maximum tijd 200ms. 
         t1 = time.time()
-        print("self.player_id")
-        print(self.player_id)
-        print("state.current_player()")
-        print(state.current_player())
 
         # FIXME: moet ik maximising player hier specifieren? 
         cloned_state = state.clone()
@@ -85,14 +84,12 @@ class Agent(pyspiel.Bot):
                                             self.cache,
                                             cloned_state,
                                             #FIXME: klopt dit ?? maakt het uit wie de maximising player is? 
-                                            maximum_depth=3,
+                                            maximum_depth=2,
                                             maximizing_player_id=self.player_id)
-        print("action")
-        print(action)
         t2 = time.time()
+        print("time step function of minimax agent.")
         print(t2 - t1)
         return action
-
 
 def test_api_calls():
     """This method calls a number of API calls that are required for the
@@ -103,9 +100,7 @@ def test_api_calls():
     
     game = pyspiel.load_game(dotsandboxes_game_string)
     bots = [get_agent_for_tournament(player_id) for player_id in [0,1]]
-    print("dit gaat wss ook niet het probleem zijn.")
     returns = evaluate_bots.evaluate_bots(game.new_initial_state(), bots, np.random)
-    print("hier wel zeker. ")
     assert len(returns) == 2
     assert isinstance(returns[0], float)
     assert isinstance(returns[1], float)
