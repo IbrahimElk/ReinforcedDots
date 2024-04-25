@@ -1,12 +1,7 @@
-#!/usr/bin/env python3
-# encoding: utf-8
 """
-dotsandboxes_agent.py
+A RANDOM dotsandboxes_agent.py
 
-Extend this class to provide an agent that can participate in a tournament.
-
-Created by Pieter Robberechts, Wannes Meert.
-Copyright (c) 2022 KU Leuven. All rights reserved.
+the file must be called dotsandboxes_agent.py in order to use the tournament.py file. 
 """
 
 import sys

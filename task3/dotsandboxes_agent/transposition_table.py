@@ -20,9 +20,9 @@ class Transposition_Table:
             self.misses += 1
             return None
 
-    def set(self, state, value):
+    def set(self, state, value, action):
         hashed_state = self._hash_state(state)
-        self.cache[hashed_state] = value
+        self.cache[hashed_state] = (value,action)
 
     def _hash_state(self, state):
         hash_hex = state.dbn_string()
