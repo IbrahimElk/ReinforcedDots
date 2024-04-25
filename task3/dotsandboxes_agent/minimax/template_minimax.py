@@ -1,6 +1,6 @@
 import pyspiel
 from absl import app
-from transposition_table import Transposition_Table, TNaive_Table
+from dotsandboxes_agent.transposition_table import Transposition_Table, TNaive_Table
 
 def _minimax(state, maximizing_player_id, cache:Transposition_Table):
     """
