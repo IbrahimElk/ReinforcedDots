@@ -1,7 +1,13 @@
+import os
+import sys
 import pyspiel
 import numpy as np
-from dotsandboxes_agent.transposition_table import TTable
-from dotsandboxes_agent.minimax.chains_minimax import chain_heuristic
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
+from transposition_table import TTable
+# from minimax.chains_minimax import chain_heuristic
 
 # FIXME:
 # HOW TO DRAW THE GAME TREE IN TERMINAL. 
