@@ -10,13 +10,16 @@ Copyright (c) 2022 KU Leuven. All rights reserved.
 """
 
 import sys
-import argparse
 import logging
-import random
+import time
 import numpy as np
 import pyspiel
 from open_spiel.python.algorithms import evaluate_bots
-from ..minimax.template_minimax import minimax_naive_search
+
+sys.path.append('../')
+
+from dotsandboxes_agent.transposition_table import TTable
+from dotsandboxes_agent.alphabeta_minimax import minimax_alphabeta_search 
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
 
@@ -45,6 +48,7 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
+        self.cache = TTable()
 
     def restart_at(self, state):
         """Starting a new game in the given state.
@@ -69,13 +73,24 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # Plays random action, change with your best strategy
-        legal_actions = state.legal_actions()
+        t1 = time.time()
+        print("self.player_id")
+        print(self.player_id)
+        print("state.current_player()")
+        print(state.current_player())
+
         # FIXME: moet ik maximising player hier specifieren? 
-        minimax_naive_search(state.get_game(), state)
-        
-        # rand_idx = random.randint(0, len(legal_actions) - 1)
-        # action = legal_actions[rand_idx]
+        cloned_state = state.clone()
+        _, action = minimax_alphabeta_search(cloned_state.get_game(), 
+                                            self.cache,
+                                            cloned_state,
+                                            #FIXME: klopt dit ?? maakt het uit wie de maximising player is? 
+                                            maximum_depth=3,
+                                            maximizing_player_id=self.player_id)
+        print("action")
+        print(action)
+        t2 = time.time()
+        print(t2 - t1)
         return action
 
 
@@ -84,10 +99,13 @@ def test_api_calls():
     tournament. It should not trigger any Exceptions.
     """
     dotsandboxes_game_string = (
-        "dotsandboxes(num_rows=5,num_cols=5)")
+        "dots_and_boxes(num_rows=5,num_cols=5)")
+    
     game = pyspiel.load_game(dotsandboxes_game_string)
     bots = [get_agent_for_tournament(player_id) for player_id in [0,1]]
+    print("dit gaat wss ook niet het probleem zijn.")
     returns = evaluate_bots.evaluate_bots(game.new_initial_state(), bots, np.random)
+    print("hier wel zeker. ")
     assert len(returns) == 2
     assert isinstance(returns[0], float)
     assert isinstance(returns[1], float)

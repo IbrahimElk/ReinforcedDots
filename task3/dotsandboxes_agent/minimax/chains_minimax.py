@@ -1,11 +1,14 @@
-from minimax.transpositon_minimax import _minimax
-from transposition_table import TSymmetric_Table
+from dotsandboxes_agent.transposition_table import TChains_Table
+from dotsandboxes_agent.minimax.template_minimax import _minimax
 import pyspiel
+
+# evaluate a game state in terms of chainss
+def chain_heuristic():
+    return 0
 
 # the implementation of this function will go to transposition_table.py
 # inside the hashstate function. 
-
-def minimax_symmetry_search(game,
+def minimax_chains_search(game,
                    state=None,
                    maximizing_player_id=None):
     """Solves deterministic, 2-players, perfect-information 0-sum game.
@@ -45,10 +48,11 @@ def minimax_symmetry_search(game,
         maximizing_player_id = state.current_player()
 
     # FIXME: no need for initial matrix to be stored in transposition table ?
-    transposition_table = TSymmetric_Table()
+    transposition_table = TChains_Table()
     
     v = _minimax(
         state.clone(),
         maximizing_player_id=maximizing_player_id, 
         cache=transposition_table)
     return transposition_table, v
+
