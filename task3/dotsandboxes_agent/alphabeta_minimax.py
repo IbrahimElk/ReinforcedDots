@@ -1,61 +1,59 @@
 import pyspiel
 import numpy as np
-from transposition_table import TTable
-from minimax.chains_minimax import chain_heuristic
+from dotsandboxes_agent.transposition_table import TTable
+from dotsandboxes_agent.minimax.chains_minimax import chain_heuristic
+
+# FIXME:
+# HOW TO DRAW THE GAME TREE IN TERMINAL. 
+# TO CHECK....
 
 # TODO: output of evaluation function should it consider the output space of the terminal states? 
 # I don't think so.
-
-# def points_player(state, maximizing_player_id): 
-#     params = state.get_game().get_parameters()
-#     num_rows = params['num_rows']
-#     num_cols = params['num_cols']
-#     num_dots = ((1 + num_rows) * (1 + num_cols))
+def eval_function(state, maximizing_player_id): 
+    params = state.get_game().get_parameters()
+    num_rows = params['num_rows']
+    num_cols = params['num_cols']
+    num_dots = ((1 + num_rows) * (1 + num_cols))
     
-#     state_info = state.observation_tensor()    
-#     np_state_info = np.array(state_info)
+    state_info = state.observation_tensor()    
+    np_state_info = np.array(state_info)
     
-#     # {cellstates= (empty, player1, player2), num_cells , part_of_cell(horizontal, vertical, which_player_won) = 3},
-#     state_matrix = np_state_info.reshape(3, num_dots, 3)
+    # {cellstates= (empty, player1, player2), num_cells , part_of_cell(horizontal, vertical, which_player_won) = 3},
+    state_matrix = np_state_info.reshape(3, num_dots, 3)
    
-#     player = state.current_player()
-#     points_empty = sum(state_matrix[0,:,2])
-#     points_player = sum(state_matrix[player+1,:,2])
+    player = state.current_player()
+    points_empty = sum(state_matrix[0,:,2])
+    points_player = sum(state_matrix[player+1,:,2])
 
-#     # maybe normalize the points to [-1 , 1] region?  
-#     if player == maximizing_player_id:
-#         return points_player
-#     else :
-#         total_amnt_boxes = num_rows * num_cols
-#         return total_amnt_boxes - (points_empty + points_player)
+    # normalize the points to [-1 , 1] region?  
+    total_amnt_boxes = num_rows * num_cols
 
-def eval_function(state, maximizing_player_id):
-
-    # player = state.current_player()
-    return 0
+    if player == maximizing_player_id:
+        return points_player/total_amnt_boxes
+    else :
+        return (total_amnt_boxes - (points_empty + points_player))/total_amnt_boxes
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TTable):
 
     if state.is_terminal():
-        # return state.player_return(maximizing_player_id), None
-        a, b = state.player_return(maximizing_player_id), None
-    # if depth == 0:
-        print("mag niet")
-        c,d = value_function(state, maximizing_player_id), None
-        return a,b
+        return state.player_return(maximizing_player_id), None
+    
+    # FIXME: zie MCTS, eval functie verandert, de huidige eval functie is a bad one. 
+    # en mag niet gebruikt worden opt einde. 
+    if depth == 0:
+        return value_function(state, maximizing_player_id), None
 
     player = state.current_player()
 
     # transpostion table
-    # TODO: cache heuristicvalue voor een state ? op basis van welke waarde ? 
-    # FIXME: dit klopt niet. 
-    # val = cache.get(state)
-    # if val != None:
-    #     if player == maximizing_player_id:
-    #         return (val, -val)
-    #     else : 
-    #         return (-val, val)
+    # FIXME: moet de val aangepast worden voor max of min speler, ik denk het niet
+    # zie ook paper: "Solving Dots-And-Boxes" , maar niet zeker. 
+    data = cache.get(state)
+    if data != None:
+        # FIXME: is this correct way  ?
+        val , action = data 
+        return val, action
 
     best_action = -1
     if player == maximizing_player_id:
@@ -63,11 +61,8 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         for action in state.legal_actions():
             child_state = state.clone()
             child_state.apply_action(action)
-            vall = _alpha_beta(child_state, depth - 1, alpha, beta,
+            child_value, _  = _alpha_beta(child_state, depth - 1, alpha, beta,
                                         value_function, maximizing_player_id, cache)
-            
-            print(vall)
-            child_value, _  = vall
             if child_value > value:
                 value = child_value
                 best_action = action
@@ -76,7 +71,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 break  # beta cut-off
         
         # transpostion table
-        cache.set(state, value)
+        cache.set(state, value, best_action)
 
         return value, best_action
     else:
@@ -84,10 +79,8 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         for action in state.legal_actions():
             child_state = state.clone()
             child_state.apply_action(action)
-            vall = _alpha_beta(child_state, depth - 1, alpha, beta,
+            child_value, _  = _alpha_beta(child_state, depth - 1, alpha, beta,
                                         value_function, maximizing_player_id, cache)
-            print(vall)
-            child_value, _  = vall
             if child_value < value:
                 value = child_value
                 best_action = action
@@ -96,15 +89,16 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 break  # alpha cut-off
         
         # transpostion table
-        cache.set(state, value)
+        cache.set(state, value, best_action)
 
         return value, best_action
 
 def minimax_alphabeta_search(game,
-                        state=None,
-                        value_function=None,
-                        maximum_depth=10,
-                        maximizing_player_id=None):
+                            transposition_table:TTable,
+                            state=None,
+                            value_function=None,
+                            maximum_depth=10,
+                            maximizing_player_id=None):
     #TODO: value_function wordt gehardcoded hier naar de chain evaluation function.
     """ functie met alles der op en der aan (van optimisaties) """
 
@@ -131,7 +125,6 @@ def minimax_alphabeta_search(game,
         maximizing_player_id = state.current_player()
     
     # FIXME: no need for initial matrix to be stored in transposition table ?
-    transposition_table = TTable()
 
     return _alpha_beta(
         state.clone(),
@@ -152,7 +145,7 @@ def main():
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
     
-    value = minimax_alphabeta_search(game)
+    value, _ = minimax_alphabeta_search(game)
 
     if value == 0:
         print("It's a draw")
