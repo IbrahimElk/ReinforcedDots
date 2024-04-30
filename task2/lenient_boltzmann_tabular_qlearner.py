@@ -12,7 +12,8 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		discount_factor=1.0,
 		temperature_schedule=rl_tools.ConstantSchedule(.5),
 		centralized=False,
-		kappa=10):	  
+		kappa=10,
+		init_probs=None):	  
 
 		super().__init__(
 			player_id,
@@ -20,7 +21,8 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 			step_size=step_size,
 			discount_factor=discount_factor,
 			epsilon_schedule=temperature_schedule,
-			centralized=centralized)
+			centralized=centralized,
+			init_probs=init_probs)
 		
 		self._history = collections.defaultdict(list)
 		self._prev_action = None
@@ -40,8 +42,8 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		Returns:
 			A valid soft-max selected action and valid action probabilities.
 		"""
+		
 		probs = np.zeros(self._num_actions)
-
 		if temperature > 0.0:
 			probs += [
 				np.exp((1 / temperature) * self._q_values[info_state][i])
@@ -84,9 +86,16 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		action, probs = None, None
 
 		# Act step: don't act at terminal states.
-		if not time_step.last():
+		if not time_step.last() and self._init:
 			epsilon = 0.0 if is_evaluation else self._epsilon
 			action, probs = self._get_action_probs(info_state, legal_actions, epsilon)
+
+		# different start position for visualisation: 
+		if not self._init : 	# probs = [0.5, 0.5] 
+			assert len(self._initial_probs) == self._num_actions
+			probs = self._initial_probs
+			action = np.random.choice(range(self._num_actions), p=probs)
+			self._init = True
 
 		if self._prev_info_state and not is_evaluation:
 			target = time_step.rewards[self._player_id]
