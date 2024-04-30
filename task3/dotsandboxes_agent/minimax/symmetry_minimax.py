@@ -1,36 +1,19 @@
 import pyspiel
-from absl import app
+import os
+import sys
 
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
 
-def _minimax(state, maximizing_player_id):
-    """
-    Implements a min-max algorithm
+from transpositon_minimax import _minimax
+from dotsandboxes_agent.transposition_table import TSymmetric_Table
 
-    Arguments:
-      state: The current state node of the game.
-      maximizing_player_id: The id of the MAX player. The other player is assumed
-        to be MIN.
+# the implementation of this function will go to transposition_table.py
+# inside the hashstate function. 
 
-    Returns:
-      The optimal value of the sub-game starting in state
-    """
-
-    if state.is_terminal():
-        return state.player_return(maximizing_player_id)
-
-    player = state.current_player()
-    if player == maximizing_player_id:
-        selection = max
-    else:
-        selection = min
-    values_children = [_minimax(state.child(action), maximizing_player_id) for action in state.legal_actions()]
-    return selection(values_children)
-
-
-def minimax_search(game,
+def minimax_symmetry_search(game,
                    state=None,
-                   maximizing_player_id=None,
-                   state_to_key=lambda state: state):
+                   maximizing_player_id=None):
     """Solves deterministic, 2-players, perfect-information 0-sum game.
 
     For small games only! Please use keyword arguments for optional arguments.
@@ -66,28 +49,12 @@ def minimax_search(game,
         state = game.new_initial_state()
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
+
+    # FIXME: no need for initial matrix to be stored in transposition table ?
+    transposition_table = TSymmetric_Table()
+    
     v = _minimax(
         state.clone(),
-        maximizing_player_id=maximizing_player_id)
-    return v
-
-
-def main(_):
-    games_list = pyspiel.registered_names()
-    assert "dots_and_boxes" in games_list
-    game_string = "dots_and_boxes(num_rows=2,num_cols=2)"
-
-    print("Creating game: {}".format(game_string))
-    game = pyspiel.load_game(game_string)
-
-    value = minimax_search(game)
-
-    if value == 0:
-        print("It's a draw")
-    else:
-        winning_player = 1 if value == 1 else 2
-        print(f"Player {winning_player} wins.")
-
-
-if __name__ == "__main__":
-    app.run(main)
+        maximizing_player_id=maximizing_player_id, 
+        cache=transposition_table)
+    return transposition_table, v
