@@ -317,6 +317,91 @@ class DotsAndBoxesSolver:
         print(f"Player {self.player} takes box ({i}, {j})")
 
 
+
+# def sac(self, u, v):
+#         self.zz = random.randint(0, 1)
+#         self.x = random.randint(0, self.m)
+#         self.y = random.randint(0, self.n)
+#         if self.zz == 1:
+#             if self.hedge[self.x][self.y] == 0 and self.hedge[self.x + 1][self.y] == 0:
+#                 self.sethedge(self.x, self.y)
+#         else:
+#             if self.vedge[self.x][self.y] == 0 and self.vedge[self.x][self.y + 1] == 0:
+#                 self.setvedge(self.x, self.y)
+
+#     def takesafe3s(self):
+#         for i in range(self.m):
+#             for j in range(self.n):
+#                 if self.box[i][j] == 3:
+#                     if self.hedge[i][j] == 0:
+#                         self.sethedge(i, j)
+#                     if self.hedge[i + 1][j] == 0:
+#                         self.sethedge(i + 1, j)
+#                     if self.vedge[i][j] == 0:
+#                         self.setvedge(i, j)
+#                     if self.vedge[i][j + 1] == 0:
+#                         self.setvedge(i, j + 1)
+
+#     def sides3(self):
+#         for i in range(self.m):
+#             for j in range(self.n):
+#                 if self.box[i][j] == 3:
+#                     self.x = i
+#                     self.y = j
+#                     self.zz = 1
+#                     self.u = 1
+#                     self.v = 1
+#                     return True
+#         return False
+
+#     def sides01(self):
+#         for i in range(self.m + 1):
+#             for j in range(self.n + 1):
+#                 if self.hedge[i][j] + self.vedge[i][j] == 0:
+#                     self.u = i
+#                     self.v = j
+#                     return True
+#         return False
+
+#     def singleton(self):
+#         for i in range(self.m):
+#             for j in range(self.n):
+#                 if self.box[i][j] == 1:
+#                     if self.hedge[i][j] + self.hedge[i + 1][j] + self.vedge[i][j] + self.vedge[i][j + 1] == 3:
+#                         self.x = i
+#                         self.y = j
+#                         self.zz = 1
+#                         return True
+#                     if self.hedge[i][j] + self.hedge[i + 1][j] + self.vedge[i][j] + self.vedge[i][j + 1] == 3:
+#                         self.x = i
+#                         self.y = j
+#                         self.zz = 0
+#                         return True
+#         return False
+
+#     def doubleton(self):
+#         for i in range(self.m):
+#             for j in range(self.n):
+#                 if self.box[i][j] == 2:
+#                     if self.hedge[i][j] + self.hedge[i + 1][j] + self.vedge[i][j] + self.vedge[i][j + 1] == 3:
+#                         self.x = i
+#                         self.y = j
+#                         self.zz = 1
+#                         return True
+#                     if self.hedge[i][j] + self.hedge[i + 1][j] + self.vedge[i][j] + self.vedge[i][j + 1] == 3:
+#                         self.x = i
+#                         self.y = j
+#                         self.zz = 0
+#                         return True
+#         return False
+
+#     def makeanymove(self):
+#         self.x = random.randint(0, self.m)
+#         self.y = random.randint(0, self.n)
+#         self.zz = random.randint(0, 1)
+#         self.takeedge(self.zz, self.x, self.y)
+
+
 # Example usage:
 game = DotsAndBoxesSolver(2, 2)
 game.restart()
