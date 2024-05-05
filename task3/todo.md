@@ -16,7 +16,17 @@ note: dit was de versie met enkel de standaard transposition table en domme eval
 ### stap 0
 
 - checken of huidige implementatie van minimax correct doet wat het moet doen. 
-- print de game tree
+
+- mss de game tree tekenen, kijken of de minimax values wel kloppen. 
+
+>vb.   
+>ge begint in intiele state,   
+>ge doet minimax,   
+>ge doet ideal action  
+>ge hebt second state  
+>ge doet nogmaals minimax op die second state,  
+>moet max speler in de tweede minimax dezelfde zijn als in de eerste minimax, zorgen we ervoor dat da zo is? etc...  
+
 - timing measures, waar verliezen we het meeste tijd. 
 
 ### stap 1

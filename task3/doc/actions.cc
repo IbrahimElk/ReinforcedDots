@@ -3,6 +3,7 @@
 #include <iostream>
 #include <tuple>
 using namespace std;
+using Action = int64_t;
 
 enum class CellOrientation {
   kHorizontal,  // = 0
@@ -62,3 +63,15 @@ tuple<int, int> move(int action, int rows, int cols) {
 
 int GetCell(int row_, int num_cols_, int col_) { 
     return row_ * (num_cols_ + 1) + col_; }
+
+Action ActionId(int num_rows_, int num_cols_, CellOrientation orientation_, int row_, int col_) {
+  // First bit is horizontal (0) or vertical (1)
+  Action action = 0;
+  int maxh = (num_rows_ + 1) * num_cols_;
+  if (orientation_ == CellOrientation::kHorizontal) {
+    action = row_ * num_cols_ + col_;
+  } else {
+    action = maxh + row_ * (num_cols_ + 1) + col_;
+  }
+  return action;
+};
