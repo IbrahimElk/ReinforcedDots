@@ -2,6 +2,7 @@ import os
 import sys
 import pyspiel
 import numpy as np
+from .. import chains
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
@@ -137,7 +138,7 @@ def minimax_alphabeta_search(game,
         maximum_depth,
         alpha=-float("inf"),
         beta=float("inf"),
-        value_function=eval_function,
+        value_function=chains.eval_function_chains,
         maximizing_player_id=maximizing_player_id,
         cache=transposition_table)
 
