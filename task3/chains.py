@@ -161,7 +161,7 @@ def _minimax(state, maximizing_player_id,depth=6):
       The optimal value of the sub-game starting in state
     """
     if state.is_terminal() or depth == 0:
-        return calc_heuristic_value(state,maximizing_player_id)
+        return eval_function_chains(state,maximizing_player_id)
         
     player = state.current_player()
 
@@ -173,7 +173,7 @@ def _minimax(state, maximizing_player_id,depth=6):
     return selection(values_children)
 
 
-def calc_heuristic_value(state,maximizing_player_id):
+def eval_function_chains(state,maximizing_player_id):
     """
     Calculate the heuristic value of a state.
     Arguments:
@@ -186,6 +186,9 @@ def calc_heuristic_value(state,maximizing_player_id):
     heuristic = 0
     box_won = 0
     box_lost = 0
+
+    num_rows = state.get_game().get_parameters()['num_rows']
+    num_cols = state.get_game().get_parameters()['num_cols']
 
     p = state.current_player()
     
@@ -208,11 +211,17 @@ def calc_heuristic_value(state,maximizing_player_id):
                 box_won += 1
                 heuristic += 1
 
-    # Take chain even/odd into account
-    if count_chains(state) % 2 == 0 and p == maximizing_player_id:
-        heuristic += 1
-    elif count_chains(state) % 2 != 0 and p != maximizing_player_id:
-        heuristic += 1
+    # Take long chain rule into account # math.ucla.edu/~tom/Games/dots&boxes_hints.html
+    if num_rows % 2 != 0 or num_cols % 2 != 0:
+        if count_chains(state) % 2 == 0 and p == maximizing_player_id:
+            heuristic += 1
+        elif count_chains(state) % 2 != 0 and p != maximizing_player_id:
+            heuristic += 1
+    elif num_rows % 2 == 0 and num_cols % 2 == 0:
+        if count_chains(state) % 2 != 0 and p == maximizing_player_id:
+            heuristic += 1
+        elif count_chains(state) % 2 == 0 and p != maximizing_player_id:
+            heuristic += 1
 
     if box_won >= 5:
         heuristic = np.inf
@@ -329,6 +338,11 @@ def minimax_search(game,
     """
     game_info = game.get_type()
 
+    num_cols = game.get_parameters()['num_cols']
+    num_rows = game.get_parameters()['num_rows']
+
+    edgesamt = num_cols * (num_rows + 1) + num_rows * (num_cols + 1)    #Barker solving dots&boxes
+
     if game.num_players() != 2:
         raise ValueError("Game must be a 2-player game")
     if game_info.chance_mode != pyspiel.GameType.ChanceMode.DETERMINISTIC:
@@ -350,8 +364,7 @@ def minimax_search(game,
         maximizing_player_id = state.current_player()
     v = _minimax(
         state.clone(),
-        maximizing_player_id=maximizing_player_id)
-    print(v)
+        maximizing_player_id=maximizing_player_id,depth=int(edgesamt/2))
     return heuristic_to_win(v)
 
 
