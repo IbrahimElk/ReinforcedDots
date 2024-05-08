@@ -10,6 +10,7 @@ class Transposition_Table:
         self.cache = {}
         self.hits = 0
         self.misses = 0
+        self.symmhits = 0
 
     def get(self, state):
         hashed_state = self._hash_state(state)
@@ -36,6 +37,9 @@ class Transposition_Table:
     
     def get_cache(self) -> dict:
         return self.cache
+    
+    def get_symmhits(self):
+        return self.symmhits
     
 class TNaive_Table(Transposition_Table):
     def get(self, state):
@@ -65,22 +69,27 @@ class TSymmetric_Table(Transposition_Table):
         if hashed_state in self.cache:
             self.hits += 1
             return self.cache[hashed_state]
-        if self.check_horizontal(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_vertical(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_h_and_v(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
+        cache_result = self.check_horizontal(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
+        cache_result = self.check_vertical(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
+        cache_result = self.check_h_and_v(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
         if num_rows == num_rows:
-            if self.check_diag_1(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
-            if self.check_diag_2(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
+            cache_result = self.check_diag_1(state, num_rows, num_cols)
+            if cache_result in self.cache:
+                self.symmhits += 1
+                return self.cache[cache_result]
+            cache_result = self.check_diag_2(state, num_rows, num_cols)
+            if cache_result in self.cache:
+                self.symmhits += 1
+                return self.cache[cache_result]
             else:
                 self.misses += 1
                 return None
@@ -97,7 +106,7 @@ class TSymmetric_Table(Transposition_Table):
         hash_hex = state.dbn_string()
         return hash_hex
     
-    def check_horizontal(state, num_rows, num_cols):
+    def check_horizontal(self, state, num_rows, num_cols):
         state_indexes = list(map(int, list(state.dbn_string())))
 
         h_edges = (num_rows+1)*num_cols
@@ -117,7 +126,7 @@ class TSymmetric_Table(Transposition_Table):
         new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
         return "".join(map(str, new_state_indexes))
 
-    def check_vertical(state, num_rows, num_cols):
+    def check_vertical(self, state, num_rows, num_cols):
         state_indexes = list(map(int, list(state.dbn_string())))
         
         h_edges = (num_rows+1)*num_cols
@@ -137,7 +146,7 @@ class TSymmetric_Table(Transposition_Table):
         new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
         return "".join(map(str, new_state_indexes))
 
-    def check_h_and_v(state, num_rows, num_cols):
+    def check_h_and_v(self, state, num_rows, num_cols):
         state_indexes = list(map(int, list(state.dbn_string())))
         
         h_edges = (num_rows+1)*num_cols
@@ -161,7 +170,7 @@ class TSymmetric_Table(Transposition_Table):
         return "".join(map(str, new_state_indexes))
     
     #only for square boards
-    def check_diag_1(state, num_rows, num_cols):
+    def check_diag_1(self, state, num_rows, num_cols):
         state_indexes = list(map(int, list(state.dbn_string())))
         
         h_edges = (num_rows+1)*num_cols
@@ -182,7 +191,7 @@ class TSymmetric_Table(Transposition_Table):
         return "".join(map(str, new_state_indexes))
 
     #only for square boards
-    def check_diag_2(state, num_rows, num_cols):
+    def check_diag_2(self, state, num_rows, num_cols):
         state_indexes = list(map(int, list(state.dbn_string())))
         
         h_edges = (num_rows+1)*num_cols

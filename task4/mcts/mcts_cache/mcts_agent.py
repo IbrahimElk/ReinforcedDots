@@ -2,18 +2,21 @@
 import collections
 import random
 import sys
+import time
 
 from absl import app
 from absl import flags
 import numpy as np
 
-from open_spiel.python.algorithms import mcts
+import task4.mcts.mcts_cache.mcts as mcts
 from open_spiel.python.algorithms.alpha_zero import evaluator as az_evaluator
 from open_spiel.python.algorithms.alpha_zero import model as az_model
 from open_spiel.python.bots import gtp
 from open_spiel.python.bots import human
 from open_spiel.python.bots import uniform_random
 import pyspiel
+
+from task3.dotsandboxes_agent.transposition_table import TSymmetric_Table
 
 _KNOWN_PLAYERS = [
     # A generic Monte Carlo Tree Search agent.
@@ -43,7 +46,7 @@ flags.DEFINE_string("az_path", None,
 flags.DEFINE_integer("uct_c", 2, "UCT's exploration constant.")
 flags.DEFINE_integer("rollout_count", 1, "How many rollouts to do.")
 flags.DEFINE_integer("max_simulations", 1000, "How many simulations to run.")
-flags.DEFINE_integer("num_games", 100, "How many games to play.")
+flags.DEFINE_integer("num_games", 1, "How many games to play.")
 flags.DEFINE_integer("seed", None, "Seed for the random number generator.")
 flags.DEFINE_bool("random_first", False, "Play the first move randomly.")
 flags.DEFINE_bool("solve", True, "Whether to use MCTS-Solver.")
@@ -102,7 +105,7 @@ def _get_action(state, action_str):
   return None
 
 
-def _play_game(game, bots, initial_actions):
+def _play_game(game, bots, initial_actions, cache:TSymmetric_Table):
   """Plays one game."""
   state = game.new_initial_state()
   _opt_print("Initial state:\n{}".format(state))
@@ -144,7 +147,14 @@ def _play_game(game, bots, initial_actions):
     else:
       # Decision node: sample action for the single current player
       bot = bots[current_player]
-      action = bot.step(state)
+      if isinstance(bot, mcts.MCTSBot):
+        action = bot.step(state, cache)
+      else:
+        t1 = time.time()
+        action = bot.step(state)
+        t2 = time.time()
+        duration = t2-t1
+        print("action time", duration)
       action_str = state.action_to_string(current_player, action)
       _opt_print("Player {} sampled action: {}".format(current_player,
                                                        action_str))
@@ -169,8 +179,8 @@ def _play_game(game, bots, initial_actions):
 
 
 def main(argv):
-  num_rows = 2
-  num_cols = 2
+  num_rows = 20
+  num_cols = 20
 
   game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
   game = pyspiel.load_game(game_string)
@@ -184,9 +194,10 @@ def main(argv):
   overall_returns = [0, 0]
   overall_wins = [0, 0]
   game_num = 0
+  cache = TSymmetric_Table()
   try:
     for game_num in range(FLAGS.num_games):
-      returns, history = _play_game(game, bots, argv[1:])
+      returns, history = _play_game(game, bots, argv[1:], cache)
       histories[" ".join(history)] += 1
       for i, v in enumerate(returns):
         overall_returns[i] += v
@@ -200,6 +211,9 @@ def main(argv):
   print("Players:", FLAGS.player1, FLAGS.player2)
   print("Overall wins", overall_wins)
   print("Overall returns", overall_returns)
+  print("Overall cache hits", cache.get_hits())
+  print("Overall cache symmhits", cache.get_symmhits())
+  print("Overall cache misses", cache.get_misses())
 
 
 if __name__ == "__main__":
