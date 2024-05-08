@@ -1,10 +1,42 @@
 #  
 #      *----*
+#  	        |
+#      *----*
+def single_singleton(SA):
+    SA.cells[0][0] = 3
+    SA.cells[1][0] = 1
+    SA.cells[0][1] = 1
+
+    SA.h_[0][0] = 1
+    SA.h_[1][0] = 1
+    SA.v_[0][1] = 1
+
+#  
+#      *----*----*
+#  	   |         |  
+#      *----*----*
+def single_doubleton(SA):
+    SA.cells[0][0] = 3
+    SA.cells[0][1] = 3
+    SA.cells[1][0] = 1
+    SA.cells[1][1] = 1
+    SA.cells[0][2] = 1
+
+    SA.h_[0][0] = 1
+    SA.h_[0][1] = 1
+    SA.h_[1][0] = 1
+    SA.h_[1][1] = 1
+
+    SA.v_[0][0] = 1
+    SA.v_[0][2] = 1
+
+#  
+#      *----*
 #  	   |    |
 #      * 	*
 #  	   |    |
 #  	   *    *
-def vertical_half_open_chain1(SA):
+def vertical_half_open_chain(SA):
     # ------------- 
     SA.h_[0][0] = 1
 

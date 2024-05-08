@@ -10,18 +10,13 @@ Copyright (c) 2022 KU Leuven. All rights reserved.
 """
 
 import sys
+import argparse
 import logging
-import time
-import os
+import random
 import numpy as np
 import pyspiel
-
-package_directory = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(package_directory)
-
 from open_spiel.python.algorithms import evaluate_bots
-from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search 
-from transposition_table import TTable
+
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
 
@@ -50,13 +45,14 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.cache = TTable()
 
     def restart_at(self, state):
         """Starting a new game in the given state.
 
         :param state: The initial state of the game.
         """
+        pass
+
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
@@ -73,29 +69,19 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # FIXME: maximum tijd 200ms. 
-        t1 = time.time()
-
-        # FIXME: moet ik maximising player hier specifieren? 
-        cloned_state = state.clone()
-        _, action = minimax_alphabeta_search(cloned_state.get_game(), 
-                                            self.cache,
-                                            cloned_state,
-                                            #FIXME: klopt dit ?? maakt het uit wie de maximising player is? 
-                                            maximum_depth=2,
-                                            maximizing_player_id=self.player_id)
-        t2 = time.time()
-        print("time step function of minimax agent.")
-        print(t2 - t1)
+        # Plays random action, change with your best strategy
+        legal_actions = state.legal_actions()
+        rand_idx = random.randint(0, len(legal_actions) - 1)
+        action = legal_actions[rand_idx]
         return action
+
 
 def test_api_calls():
     """This method calls a number of API calls that are required for the
     tournament. It should not trigger any Exceptions.
     """
     dotsandboxes_game_string = (
-        "dots_and_boxes(num_rows=5,num_cols=5)")
-    
+        "dotsandboxes(num_rows=5,num_cols=5)")
     game = pyspiel.load_game(dotsandboxes_game_string)
     bots = [get_agent_for_tournament(player_id) for player_id in [0,1]]
     returns = evaluate_bots.evaluate_bots(game.new_initial_state(), bots, np.random)

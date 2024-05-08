@@ -14,6 +14,10 @@ tuple<int, int> move(int action, int rows, int cols);
 int GetCell(int row_, int num_cols_, int col_);
 
 int main() {
+    int extra_;
+    extra_ = 26 / 10;
+    cout << "extra_" << endl;
+    cout << extra_ << endl;
     int rows = 3;    
     int cols = 3;    
 
