@@ -1,31 +1,86 @@
-import numpy as np
-import random as r
+import os
+import sys
+import math
+parent_dir = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
 
-from MARL.task3.dotsandboxes_agent.util import CellOrientation, Directions
-from examples import horizontal_closed_chain, vertical_closed_chain, example_paper, horizontal_half_open_chain1, horizontal_half_open_chain2, vertical_half_open_chain1
+import random as r
+from util import CellOrientation, Directions
+
+# type Alias
 Action = int
 
 class StrategyAdvisor : 
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
-        self.player = 1
-        self.score = [0, 0]
         self.h_ = [[0] * cols for _ in range(rows + 1)]
         self.v_ = [[0] * (cols + 1) for _ in range(rows)]
         self.cells = [[0] * cols for _ in range(rows)]
         self.chains = {"half_open": [], "closed": []}
 
+    def get_tabular_form(self, action):
+        maxh = (self.rows + 1) * self.cols
+        if (action < maxh) : 
+            # Horizontal
+            orien = CellOrientation.HORIZONTAL
+            row = math.floor(action / self.cols)
+            col = action % self.cols
+        else : 
+            # Vertical
+            action -= maxh
+            orien = CellOrientation.VERTICAL
+            row = math.floor(action / (self.cols + 1))
+            col = action % (self.cols + 1)
+
+        return orien, row, col
+        
+    def update_action(self, action):
+        orien, i, j = self.get_tabular_form(action)
+        if orien.value == CellOrientation.HORIZONTAL.value : 
+            self.set_h_edge(i,j)
+        else : 
+            self.set_v_edge(i,j)         
+
+    def update_edge(self, orien:CellOrientation, i, j):
+        if orien.value == CellOrientation.HORIZONTAL.value : 
+            self.set_h_edge(i,j)
+        else : 
+            self.set_v_edge(i,j)
+
+    def set_h_edge(self, x, y):
+        self.h_[x][y] = 1
+        if x > 0:
+            self.cells[x - 1][y] += 1
+        if x < self.rows:
+            self.cells[x][y] += 1
+
+    def set_v_edge(self, x, y):
+        self.v_[x][y] = 1
+        if y > 0:
+            self.cells[x][y - 1] += 1
+        if y < self.cols:
+            self.cells[x][y] += 1
+
+
     def action_id(self, orientation_:CellOrientation, row_:int, col_:int):
         """
         - Translate the row, column and orientation of the edge to an Action. 
         """
+
         action = 0
         maxh  = (self.rows + 1) * self.cols
-        if (orientation_ == CellOrientation.HORIZONTAL):
+        if (orientation_.value == CellOrientation.HORIZONTAL.value):
             action = row_ * self.cols + col_
-        else :
+            # print("action1")
+            # print(action)
+        elif (orientation_.value == CellOrientation.VERTICAL.value):
             action = maxh + row_ * (self.cols + 1) + col_
+            # print("action2")
+            # print(action)
+        else : 
+            raise ValueError("The orientation_ parameter must be of type CellOrientation")
+
         return action
 
     def safe3(self):
@@ -35,7 +90,7 @@ class StrategyAdvisor :
         for row in range(0,self.rows):
             for col in range(0,self.cols):
                 if self.cells[row][col] == 3:
-                    if self.vedge[row][col] < 1:
+                    if self.v_[row][col] < 1:
                         if col == 0 or self.cells[row][col-1] != 2 :
                             action = self.action_id(CellOrientation.VERTICAL,row,col)
                             return [action]
@@ -47,12 +102,12 @@ class StrategyAdvisor :
 
                     elif self.v_[row][col+1] < 1:
                         if col == self.cols-1 or self.cells[row][col+1] != 2:
-                            action = self.action_id(CellOrientation.VERTICAL,row,col)
+                            action = self.action_id(CellOrientation.VERTICAL,row,col+1)
                             return [action]
 
                     else :
                         if row == self.rows-1 or self.cells[row+1][col] != 2:
-                            action = self.action_id(CellOrientation.HORIZONTAL,row,col)
+                            action = self.action_id(CellOrientation.HORIZONTAL,row+1,col)
                             return [action]
         return None
     
@@ -105,10 +160,10 @@ class StrategyAdvisor :
         # TODO: to increase efficiency, dont calculate this evrytime: 
         # if not self.chains["half_open"] and not self.chains["closed"]:
         self.find_all_chains()
-        print("closed chains")
-        print(self.chains["closed"])
-        print("half open chains")
-        print(self.chains["half_open"])
+        # print("closed chains")
+        # print(self.chains["closed"])
+        # print("half open chains")
+        # print(self.chains["half_open"])
 
         # check if there are closed chains first. 
         amount_of_closed_chains     = len(self.chains["closed"])
@@ -119,21 +174,23 @@ class StrategyAdvisor :
             if (amount_of_closed_chains == 1 and 
                 amount_of_half_open_chains == 0 and 
                 amount_of_capturable_boxes == 4):
+                # print("ohh nee")
 
                 chain_data = self.chains["closed"][0]
                 dhh_action = self.get_double_half_haerted(
                     chain_data["chain"],
                     chain_data["directions"])
-                fb_action = self.draw_fill_box(
+                fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
                 
                 return [dhh_action, fb_action]
             
             else :
+                # print("dit zou zeer dissapointed zijn")
                 chain_data = self.chains["closed"][0]
 
-                fb_action = self.draw_fill_box(
+                fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
                 return [fb_action]
@@ -142,21 +199,23 @@ class StrategyAdvisor :
             if (amount_of_closed_chains == 0 and 
                 amount_of_half_open_chains == 1 and 
                 amount_of_capturable_boxes == 2):
+                # print("excuseer? ")
 
                 chain_data = self.chains["half_open"][0]
                 shh_action = self.get_single_half_haerted(
                     chain_data["chain"],
                     chain_data["directions"])
-                fb_action = self.draw_fill_box(
+                fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
                 
                 return [shh_action, fb_action]
             
             else :
+                # print("hier wel?")
                 chain_data = self.chains["half_open"][0]
 
-                fb_action = self.draw_fill_box(
+                fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
                 return [fb_action]
@@ -169,19 +228,19 @@ class StrategyAdvisor :
         direction = directions[1]
 
         if direction == Directions.DOWN:
-            print(CellOrientation.HORIZONTAL, u+1, v)
+            # print(CellOrientation.HORIZONTAL, u+1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
             return action
         elif direction == Directions.UP:
-            print(CellOrientation.HORIZONTAL, u-1, v)
+            # print(CellOrientation.HORIZONTAL, u-1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
             return action
         elif directions == Directions.LEFT:
-            print(CellOrientation.VERTICAL, u, v)
+            # print(CellOrientation.VERTICAL, u, v)
             action = self.action_id(CellOrientation.VERTICAL, u, v)
             return action
         else : 
-            print(CellOrientation.VERTICAL, u, v+1)
+            # print(CellOrientation.VERTICAL, u, v+1)
             action = self.action_id(CellOrientation.VERTICAL, u, v+1)
             return action
 
@@ -193,19 +252,19 @@ class StrategyAdvisor :
         direction = directions[1]
 
         if direction == Directions.DOWN:
-            print(CellOrientation.HORIZONTAL, u+1, v)
+            # print(CellOrientation.HORIZONTAL, u+1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
             return action
         elif direction == Directions.UP:
-            print(CellOrientation.HORIZONTAL, u-1, v)
+            # print(CellOrientation.HORIZONTAL, u-1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
             return action
         elif directions == Directions.LEFT:
-            print(CellOrientation.VERTICAL, u, v)
+            # print(CellOrientation.VERTICAL, u, v)
             action = self.action_id(CellOrientation.VERTICAL, u, v)
             return action
         else : 
-            print(CellOrientation.VERTICAL, u, v+1)
+            # print(CellOrientation.VERTICAL, u, v+1)
             action = self.action_id(CellOrientation.VERTICAL, u, v+1)
             return action
 
@@ -213,17 +272,19 @@ class StrategyAdvisor :
         u, v = closed_chain[0]
         direction = directions[0]
 
-        if direction == Directions.DOWN:
-            print(CellOrientation.HORIZONTAL, u+1, v)
+        if direction.value == Directions.DOWN.value:
+            # print(CellOrientation.HORIZONTAL, u+1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
-        elif direction == Directions.UP:
-            print(CellOrientation.HORIZONTAL, u-1, v)
+        elif direction.value == Directions.UP.value:
+            # print(CellOrientation.HORIZONTAL, u-1, v)
             action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
-        elif directions == Directions.LEFT:
-            print(CellOrientation.VERTICAL, u, v)
+        elif direction.value == Directions.LEFT.value:
+            # print(CellOrientation.VERTICAL, u, v)
             action = self.action_id(CellOrientation.VERTICAL, u, v)
         else : 
-            print(CellOrientation.VERTICAL, u, v+1)
+            # print("BEGIN INDSIDE GETFILLBOX")
+            # print(CellOrientation.VERTICAL, u, v+1)
+            # print("END INSIDE GETFILLBOX")
             action = self.action_id(CellOrientation.VERTICAL, u, v+1)
 
         return action
@@ -327,7 +388,7 @@ class StrategyAdvisor :
         i = r.randint(0, self.rows - 1)
         j = r.randint(0, self.cols - 1)
 
-        if orien == CellOrientation.HORIZONTAL:
+        if orien.value == CellOrientation.HORIZONTAL.value:
             if self.rand_hedge(i, j):
                 action = self.action_id(CellOrientation.HORIZONTAL, i, j)
                 return action
@@ -397,16 +458,6 @@ class StrategyAdvisor :
                 return True
         return False
 
-
-    #FIXME: dit is in andere file: 
-    # eval functie moet zijn om de punten van de tegenstander te minimaliseren !!!
-    # niet uw eigen munten maximalisreen in limited depth !!
-    # zo denk ik ook wanneer ik het spel speel!
-
-    # def minimax(self):
-    #     # ipv state.legal_actions, gebruik : 
-    #     possible_action = self.get_available_action(state)
-
 if __name__ == "__main__":
     SA = StrategyAdvisor(10,10)
     # example_paper(SA)
@@ -417,30 +468,3 @@ if __name__ == "__main__":
     # closed_chain = closed_chain_data["chain"]
     # closed_dir   = closed_chain_data["directions"]
     # SA.get_double_half_haerted(closed_chain,closed_dir)
-
-# UNIT TEST get_double_half_haerted
-
-    # vertical_closed_chain(SA)
-    # SA.find_all_chains()
-
-    # horizontal_closed_chain(SA)
-    # SA.find_all_chains()
-
-    # print(SA.chains)
-    # chain_data = SA.chains["closed"][0]
-    # SA.get_double_half_haerted(chain_data["chain"], chain_data["directions"])
-
-# UNIT TEST get_single_half_haerted
-
-    # horizontal_half_open_chain1(SA)
-    # SA.find_all_chains()
-
-    # horizontal_half_open_chain2(SA)
-    # SA.find_all_chains()
-
-    # vertical_half_open_chain1(SA)
-    # SA.find_all_chains()
-
-    # print(SA.chains)
-    # chain_data = SA.chains["half_open"][0]
-    # SA.get_single_half_haerted(chain_data["chain"], chain_data["directions"])
