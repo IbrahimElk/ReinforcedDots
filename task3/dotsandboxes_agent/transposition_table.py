@@ -1,9 +1,7 @@
 # from minimax.symmetry_minimax import find_representative
 # from minimax.chains_minimax import chain_heuristic
 
-
 import numpy as np
-
 
 class Transposition_Table:
     def __init__(self):

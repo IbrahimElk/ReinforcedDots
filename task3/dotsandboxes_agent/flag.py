@@ -5,7 +5,7 @@ class Flag():
         self._loop = False
         self._end = False
         self._count = None
-        self.__cell = None, None
+        self._cell = None, None
 
     # ----------------------------
     def getChainFill(self):

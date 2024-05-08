@@ -1,6 +1,6 @@
 import math 
 import random
-from cell_orientation import CellOrientation
+from MARL.task3.dotsandboxes_agent.util import CellOrientation
 
 def action_id(num_rows_:int, num_cols_:int, orientation_:CellOrientation, row_:int, col_:int):
   action = 0
@@ -384,8 +384,6 @@ def outcount(k, i, j, count, h_, v_, rows, cols):
             count-=1;
             outcount(2,i+1,j, count, h_, v_, rows, cols)
 
-
-
 def takeallbut(x, y, u, v, rows, cols, cells):
 	while sides3not(x, y, u, v, rows, cols, cells):
 		takebox(u,v)
@@ -405,8 +403,6 @@ def setvedge(i,j):
 
 def sethedge(i,j):
     pass
-
-
 
 def singleton(rows, cols, cells, h_, v_) :     # Returns true and zz,x,y if edge(x,y) gives exactly 1 square away
     numb = None         
