@@ -2,12 +2,13 @@ import os
 import sys
 import pyspiel
 import numpy as np
+
 package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from flag import Flag
 from transposition_table import TTable
-from cell_orientation import CellOrientation
+from MARL.task3.dotsandboxes_agent.util import CellOrientation
 from intelligent_chains import safe3s, sides3, sides3not, incount, outcount, sides01, takebox, sac, singleton, doubleton
 
 # FIXME: draw game tree to see if it makes sense. 
@@ -16,16 +17,7 @@ from intelligent_chains import safe3s, sides3, sides3not, incount, outcount, sid
 # TODO: tis niet in principe nodig om value en action terug te returnen, enkel in minimax.
 # we kunnen ook gwn de action terug geven, en dan bij "make any move", dan is eerste moment dat je minimax doet.
 
-def action_id(num_rows_:int, num_cols_:int, orientation_:CellOrientation, row_:int, col_:int):
-  action = 0
-  maxh  = (num_rows_ + 1) * num_cols_
-  if (orientation_ == CellOrientation.HORIZONTAL):
-    action = row_ * num_cols_ + col_
-  else :
-    action = maxh + row_ * (num_cols_ + 1) + col_
-  return action
-
-def eval_function(state, maximizing_player_id): 
+def eval_function_maximise_points(state, maximizing_player_id): 
     params = state.get_game().get_parameters()
     num_rows = params['num_rows']
     num_cols = params['num_cols']
@@ -55,13 +47,9 @@ def get_dbn_action(state, flag:Flag, depth, alpha, beta, value_function,
     if state.is_terminal():
         return state.player_return(maximizing_player_id), None
     
-    # FIXME: zie MCTS, eval functie verandert, de huidige eval functie is a bad one. 
-    # en mag niet gebruikt worden opt einde. 
     if depth == 0:
         return value_function(state, maximizing_player_id), None
 
-    # FIXME: moet de val aangepast worden voor max of min speler, ik denk het niet
-    # zie ook paper: "Solving Dots-And-Boxes" , maar niet zeker. 
     data = cache.get(state)
     if data != None:
         val , action = data 
@@ -365,7 +353,7 @@ def minimax_alphabeta_search(game,
         maximum_depth,
         alpha=-float("inf"),
         beta=float("inf"),
-        value_function=eval_function,
+        value_function=eval_function_maximise_points,
         maximizing_player_id=maximizing_player_id,
         cache=transposition_table)
 

@@ -57,8 +57,6 @@ class Agent(pyspiel.Bot):
 
         :param state: The initial state of the game.
         """
-        pass
-
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
