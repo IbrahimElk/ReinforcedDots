@@ -5,6 +5,7 @@ class TNaive_Table:
         self.cache = {}
         self.hits = 0
         self.misses = 0
+        self.symmhits = 0
 
     def get(self, state):
         hashed_state = self._hash_state(state)
@@ -32,6 +33,9 @@ class TNaive_Table:
     def get_cache(self) -> dict:
         return self.cache.copy()
     
+    def get_symmhits(self):
+        return self.symmhits
+    
 class TEmpty_Table(TNaive_Table):
     def get(self, state):
         self.misses += 1
@@ -50,22 +54,27 @@ class TOptimised_Table(TNaive_Table):
         if hashed_state in self.cache:
             self.hits += 1
             return self.cache[hashed_state]
-        if self.check_horizontal(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_vertical(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_h_and_v(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
+        cache_result = self.check_horizontal(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
+        cache_result = self.check_vertical(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
+        cache_result = self.check_h_and_v(state, num_rows, num_cols)
+        if cache_result in self.cache:
+            self.symmhits += 1
+            return self.cache[cache_result]
         if num_rows == num_rows:
-            if self.check_diag_1(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
-            if self.check_diag_2(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
+            cache_result = self.check_diag_1(state, num_rows, num_cols)
+            if cache_result in self.cache:
+                self.symmhits += 1
+                return self.cache[cache_result]
+            cache_result = self.check_diag_2(state, num_rows, num_cols)
+            if cache_result in self.cache:
+                self.symmhits += 1
+                return self.cache[cache_result]
             else:
                 self.misses += 1
                 return None
