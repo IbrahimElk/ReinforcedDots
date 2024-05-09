@@ -1,4 +1,18 @@
 
+## info :
+
+https://stanford-cs221.github.io/autumn2023-extra/modules/games/evaluation-functions-6pp.pdf
+
+intresting proposition: if next player to play is the same player, 
+(due to capture of box), do not decrease the depth in
+
+
+https://ics.uci.edu/~rickl/courses/cs-171/0-ihler-2016-fq/Lectures/Lathrop/cs-171-07a-Games-MiniMax.pdf
+
+behaviour is preserved under any *monotonic* transformation of eval_function. 
+Board evaluation X for player is -X for opponent
+– “Zero-sum game” (i.e., scores sum to a constant)
+
 ## tournament 
 
 ![alt text](image.png)
