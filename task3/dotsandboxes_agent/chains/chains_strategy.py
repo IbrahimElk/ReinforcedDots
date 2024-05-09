@@ -5,10 +5,25 @@ parent_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, parent_dir)
 
 import random as r
+import numpy as np
 from util import CellOrientation, Directions
 
 # type Alias
 Action = int
+
+# FIXME:
+# An obvious heuristic would be to consider capturing
+# moves first; however, all such moves are part of chains and
+# are dealt with by the rules of the previous section. Thus,
+# our move ordering only considers non-capturing moves. Of
+# those, the heuristic considers moves that fill in the third edge
+# of a box last, as they leave a capturable box for the opponent.
+# The remaining moves are explored by considering edges in
+# an order radiating outwards from the center of the board.
+# This is a very effective heuristic, despite its extreme sim-
+# plicity. On the 4 × 4 solution, for example, this approach
+# reduced the runtime by a factor of 17 over a simple left-to-
+# right, top-to-bottom move order.
 
 class StrategyAdvisor : 
     def __init__(self, rows, cols):
@@ -18,6 +33,14 @@ class StrategyAdvisor :
         self.v_ = [[0] * (cols + 1) for _ in range(rows)]
         self.cells = [[0] * cols for _ in range(rows)]
         self.chains = {"half_open": [], "closed": []}
+
+    def clone(self):
+        cloned_advisor = StrategyAdvisor(self.rows, self.cols)
+        cloned_advisor.h_ = [row[:] for row in self.h_]
+        cloned_advisor.v_ = [row[:] for row in self.v_]
+        cloned_advisor.cells = [row[:] for row in self.cells]
+        cloned_advisor.chains = {"half_open": self.chains["half_open"][:], "closed": self.chains["closed"][:]}
+        return cloned_advisor
 
     def get_tabular_form(self, action):
         maxh = (self.rows + 1) * self.cols
@@ -157,13 +180,7 @@ class StrategyAdvisor :
         return amnt
 
     def unsafe3(self):
-        # TODO: to increase efficiency, dont calculate this evrytime: 
-        # if not self.chains["half_open"] and not self.chains["closed"]:
         self.find_all_chains()
-        # print("closed chains")
-        # print(self.chains["closed"])
-        # print("half open chains")
-        # print(self.chains["half_open"])
 
         # check if there are closed chains first. 
         amount_of_closed_chains     = len(self.chains["closed"])
@@ -282,9 +299,7 @@ class StrategyAdvisor :
             # print(CellOrientation.VERTICAL, u, v)
             action = self.action_id(CellOrientation.VERTICAL, u, v)
         else : 
-            # print("BEGIN INDSIDE GETFILLBOX")
             # print(CellOrientation.VERTICAL, u, v+1)
-            # print("END INSIDE GETFILLBOX")
             action = self.action_id(CellOrientation.VERTICAL, u, v+1)
 
         return action
@@ -379,7 +394,10 @@ class StrategyAdvisor :
         # last resprt: 
         return state.legal_actions()
 
-    def side1(self):
+    def side1(self, seed=None):
+        if seed is not None:
+            r.seed(seed)
+
         if r.random() < 0.5: 
             orien = CellOrientation.HORIZONTAL
         else :
@@ -389,50 +407,67 @@ class StrategyAdvisor :
         j = r.randint(0, self.cols - 1)
 
         if orien.value == CellOrientation.HORIZONTAL.value:
-            if self.rand_hedge(i, j):
-                action = self.action_id(CellOrientation.HORIZONTAL, i, j)
+            pos = self.rand_hedge(i, j)
+            if pos:
+                x, y = pos
+                action = self.action_id(CellOrientation.HORIZONTAL, x, y)
                 return action
             
             else:
-                if self.rand_vedge(i, j):
-                    action = self.action_id(CellOrientation.VERTICAL, i, j)
+                pos = self.rand_vedge(i, j)
+                if pos:
+                    x, y = pos
+                    action = self.action_id(CellOrientation.VERTICAL, x, y)
                     return action
                 
         else:
-            if self.rand_vedge(i, j):
-                action = self.action_id(CellOrientation.VERTICAL, i, j)
+            pos = self.rand_vedge(i, j)
+            if pos:
+                x, y = pos
+                action = self.action_id(CellOrientation.VERTICAL, x, y)
                 return action
-                                    
             else:
-                if self.rand_hedge(i, j):
-                    action = self.action_id(CellOrientation.HORIZONTAL, i, j)
+                pos = self.rand_hedge(i, j)
+                if pos:
+                    x, y = pos
+                    action = self.action_id(CellOrientation.HORIZONTAL, x, y)
                     return action
                 
         return None
-    
-    def rand_hedge(self, i, j):
-        for x in range(i, self.rows + 2):
-            for y in range(j, self.cols + 1):
-                if self.safe_hedge(x, y):
-                    return True
-                
-        for x in range(0, i):
-            for y in range(0, j):
-                if self.safe_hedge(x, y):
-                    return True
-        return False
 
-    def rand_vedge(self, i ,j):
-        for x in range(i, self.rows + 1):
-            for y in range(j, self.cols + 2):
-                if self.safe_vedge(x, y):
-                    return True
-                
-        for x in range(0, i):
-            for y in range(0, j):
-                if self.safe_vedge(x, y):
-                    return True
-        return False
+    def rand_hedge(self, i, j):
+        x = i
+        y = j
+        while True:
+            if self.safe_hedge(x, y):
+                return x, y
+            else:
+                y += 1
+                if y == self.cols:
+                    y = 0
+                    x += 1
+                    if x > self.rows:
+                        x = 0
+            if x == i and y == j:
+                break
+        return None
+
+    def rand_vedge(self, i, j):
+        x = i
+        y = j
+        while True:
+            if self.safe_vedge(x, y):
+                return x, y 
+            else:
+                y += 1
+                if y > self.cols:
+                    y = 0
+                    x += 1
+                    if x == self.rows:
+                        x = 0
+            if x == i and y == j:
+                break
+        return None
 
     def safe_hedge(self, i, j):
         if self.h_[i][j] < 1:

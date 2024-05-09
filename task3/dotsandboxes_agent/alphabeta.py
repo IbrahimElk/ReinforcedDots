@@ -13,26 +13,18 @@ from evaluators import eval_function_maximise_points, eval_function_minimize_opp
 # FIXME: draw game tree to see if it makes sense. 
 # TODO: output of evaluation function, should it consider the output space of the terminal states? 
 
-# TODO: tis niet in principe nodig om value en action terug te returnen, enkel in minimax.
-# we kunnen ook gwn de action terug geven, en dan bij "make any move", dan is eerste moment dat je minimax doet.
-
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TTable, SA:StrategyAdvisor):
     
-
     if state.is_terminal():
-        return state.player_return(maximizing_player_id), None
+        return state.player_return(maximizing_player_id)
     
     if depth == 0:
-        return value_function(state, maximizing_player_id), None
+        return value_function(state, maximizing_player_id)
 
-    player = state.current_player()
-
-    data = cache.get(state)
-    if data != None:
-        values = data
-        val = values[player]
-        return val, None
+    val = cache.get(state)
+    if val:
+        return val
 
     possible_actions = SA.get_available_action(state)
 
@@ -42,10 +34,13 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         value = -float("inf")
         for action in possible_actions:
             child_state = state.clone()
-            child_state.apply_action(action)
+            child_SA = SA.clone()
 
-            child_value, _  = _alpha_beta(child_state, depth - 1, alpha, beta,
-                                        value_function, maximizing_player_id, cache)
+            child_state.apply_action(action)
+            child_SA.update_action(action)
+
+            child_value = _alpha_beta(child_state, depth - 1, alpha, beta,
+                                        value_function, maximizing_player_id, cache, child_SA)
             if child_value > value:
                 value = child_value
                 best_action = action
@@ -54,16 +49,20 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 break  # beta cut-off
         
         # transpostion table
-        cache.set(state, [value, -value], best_action)
+        cache.set(state, value)
         return value, best_action
     
     else:
         value = float("inf")
         for action in possible_actions:
             child_state = state.clone()
+            child_SA = SA.clone()
+
             child_state.apply_action(action)
-            child_value, _  = _alpha_beta(child_state, depth - 1, alpha, beta,
-                                        value_function, maximizing_player_id, cache)
+            child_SA.update_action(action)
+
+            child_value  = _alpha_beta(child_state, depth - 1, alpha, beta,
+                                        value_function, maximizing_player_id, cache, child_SA)
             if child_value < value:
                 value = child_value
                 best_action = action
@@ -72,8 +71,8 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 break  # alpha cut-off
         
         # transpostion table
-        cache.set(state, [-value, value], best_action)
-        return value, best_action
+        cache.set(state, value)
+        return value
 
 def minimax_alphabeta_search(game,
                             transposition_table:TTable,
@@ -106,15 +105,32 @@ def minimax_alphabeta_search(game,
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
     
-    return _alpha_beta(
-        state.clone(),
-        maximum_depth,
-        alpha=-float("inf"),
-        beta=float("inf"),
-        value_function=value_function,
-        maximizing_player_id=maximizing_player_id,
-        cache=transposition_table,
-        strategy_advisor=strategy_advisor)
+    
+    possible_actions = strategy_advisor.get_available_action(state)
+
+    value = -float("inf")
+    for action in possible_actions:
+        child_state = state.clone()
+        child_SA = possible_actions.clone()
+
+        child_state.apply_action(action)
+        child_SA.update_action(action)
+
+        child_value = _alpha_beta(
+                        child_state,
+                        maximum_depth,
+                        alpha=-float("inf"),
+                        beta=float("inf"),
+                        value_function=value_function,
+                        maximizing_player_id=maximizing_player_id,
+                        cache=transposition_table,
+                        strategy_advisor=strategy_advisor.clone())
+        
+        if child_value > value:
+            value = child_value
+            best_action = action  
+
+    return value, best_action
 
 def main():
     games_list = pyspiel.registered_names()

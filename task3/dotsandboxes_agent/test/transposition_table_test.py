@@ -1,213 +1,239 @@
-# from minimax.symmetry_minimax import find_representative
-# from minimax.chains_minimax import chain_heuristic
+import os
+import sys
+import unittest
+import pyspiel
+import random as r
+import chains.pyspiel_examples as ex
 
-import numpy as np
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+sys.path.insert(0, parent_dir)
 
-class Transposition_Table:
-    def __init__(self):
-        self.cache = {}
-        self.hits = 0
-        self.misses = 0
+import transposition_table as T
 
-    def get(self, state):
-        hashed_state = self._hash_state(state)
-        if hashed_state in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        else:
-            self.misses += 1
-            return None
+class TestTNaive_Table(unittest.TestCase):
+    def test_get_and_set(self):
+        table = T.TNaive_Table()
 
-    def set(self, state, value, action):
-        hashed_state = self._hash_state(state)
-        self.cache[hashed_state] = (value,action)
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
 
-    def _hash_state(self, state):
-        hash_hex = state.dbn_string()
-        return hash_hex
-    
-    def get_hits(self):
-        return self.hits
-    
-    def get_misses(self):
-        return self.misses
-    
-    def get_cache(self) -> dict:
-        return self.cache
-    
-class TNaive_Table(Transposition_Table):
-    def get(self, state):
-        return None
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
 
-    def set(sefl, state, value):
-        return 
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
 
-class TChains_Table(Transposition_Table):
-    # TODO:
-    def _hash_state(self, state):
-        # change state representation
-        # gebruik args argumetn bv. 
-        # bv. aantal chains in state = chains_info 
-        # chains_info = chain_heuristic(state)
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
 
-        # temp:
-        hash_hex = state.dbn_string()
-        return hash_hex
-    
-class TSymmetric_Table(Transposition_Table):
-    def get(self, state):
-        hashed_state = self._hash_state(state)
-        params = state.get_game().get_parameters()
-        num_rows = params['num_rows']
-        num_cols = params['num_cols']
-        if hashed_state in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_horizontal(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_vertical(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if self.check_h_and_v(state, num_rows, num_cols) in self.cache:
-            self.hits += 1
-            return self.cache[hashed_state]
-        if num_rows == num_rows:
-            if self.check_diag_1(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
-            if self.check_diag_2(state, num_rows, num_cols) in self.cache:
-                self.hits += 1
-                return self.cache[hashed_state]
-            else:
-                self.misses += 1
-                return None
-        else:
-            self.misses += 1
-            return None
+        value1 = 1
+        value2 = 2
 
+        table.set(state1, value1)
+        self.assertEqual(table.get(state1), value1)
 
-    def _hash_state(self, state):
-        # symmetric_state = find_representative(state)
-        # hash_hex = symmetric_state.dbn_string()
+        table.set(state1, value2)
+        self.assertEqual(table.get(state1), value2)
+
         
-        # temp:
-        hash_hex = state.dbn_string()
-        return hash_hex
+        state2.apply_action(0)
+        self.assertIsNotNone(table.get(state1))
+        self.assertIsNone(table.get(state2))
+
+    def test_cache_hits_and_misses(self):
+        table = T.TNaive_Table()
+ 
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
+
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
+
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
+        state2.apply_action(0)
+        value = "value"
+
+        table.set(state1, value)
+
+        table.get(state1)  # Hit
+        table.get(state2)  # Miss
+        table.get(state1)  # Hit
+        table.get(state1)  # Hit
+
+        self.assertEqual(table.get_hits(), 3)
+        self.assertEqual(table.get_misses(), 1)
+
+class TestTEmpty_Table(unittest.TestCase):
+    def test_get_and_set(self):
+        table = T.TEmpty_Table()
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
+
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
+
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
+
+        value1 = 1
+        value2 = 2
+
+        table.set(state1, value1)
+        self.assertIsNone(table.get(state1))
+
+        table.set(state1, value2)
+        self.assertIsNone(table.get(state1))
+
+        state2.apply_action(0)
+        self.assertIsNone(table.get(state1))
+        self.assertIsNone(table.get(state2))
+
+    def test_cache_hits_and_misses(self):
+        table = T.TEmpty_Table()
+        
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
+
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
+
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
+        state2.apply_action(0)
+        value = "value"
+
+        table.set(state1, value)
+
+        table.get(state1)  # Hit
+        table.get(state2)  # Miss
+        table.get(state1)  # Hit
+        table.get(state1)  # Hit
+
+        self.assertEqual(table.get_hits(), 0)
+        self.assertEqual(table.get_misses(), 4)
+
+class TestTOptimised_Table(unittest.TestCase):
+    def test_get_and_set(self):
+        table = T.TOptimised_Table()
+
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
+
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
+
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
+
+        value1 = 1
+        value2 = 2
+
+        table.set(state1, value1)
+        self.assertEqual(table.get(state1), value1)
+
+        table.set(state1, value2)
+        self.assertEqual(table.get(state1), value2)
+
+        
+        state2.apply_action(0)
+        self.assertIsNotNone(table.get(state1))
+        self.assertIsNone(table.get(state2))
+
+    def test_cache_hits_and_misses(self):
+        table = T.TOptimised_Table()
+
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(1, 10)
+        y = r.randint(1, 10)
+
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
+
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
+        state2.apply_action(0)
+        value = "value"
+
+        table.set(state1, value)
+
+        table.get(state1)  # Hit
+        table.get(state2)  # Miss
+        table.get(state1)  # Hit
+        table.get(state1)  # Hit
+
+        self.assertEqual(table.get_hits(), 3)
+        self.assertEqual(table.get_misses(), 1)
     
-    def check_horizontal(state, num_rows, num_cols):
-        state_indexes = list(map(int, list(state.dbn_string())))
+    def test_symmetries(self):
+        # horizontal_closed_chain is symmetrisch tegenover vertical_closed_chain
+        # horizontal_half_open_chain1 symmetrisch tegenover vertical_half_open_chain
+        pass
 
-        h_edges = (num_rows+1)*num_cols
 
-        h_list = state_indexes[:h_edges]
-        v_list = state_indexes[h_edges:]
+    def test_symmetries(self):
+        table = T.TOptimised_Table()
 
-        h_matrix = np.zeros((num_rows+1,num_cols), dtype=int)
-        v_matrix = np.zeros((num_rows,num_cols+1), dtype=int)
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
 
-        h_matrix = np.reshape(h_list, h_matrix.shape)
-        v_matrix = np.reshape(v_list, v_matrix.shape)
+        x = r.randint(4, 10)
+        y = r.randint(4, 10)
 
-        new_h_list = np.flipud(h_matrix).ravel()
-        new_v_list = np.flipud(v_matrix).ravel()
+        num_rows = x
+        num_cols = y
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game = pyspiel.load_game(game_string)
 
-        new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
-        return "".join(map(str, new_state_indexes))
+        state1 = game.new_initial_state()
+        state2 = game.new_initial_state()
 
-    def check_vertical(state, num_rows, num_cols):
-        state_indexes = list(map(int, list(state.dbn_string())))
-        
-        h_edges = (num_rows+1)*num_cols
+        ex.horizontal_closed_chain(state1)
+        ex.vertical_closed_chain(state2)
 
-        h_list = state_indexes[:h_edges]
-        v_list = state_indexes[h_edges:]
+        print("state1")
+        print(state1)
+        print("state2")
+        print(state2)
 
-        h_matrix = np.zeros((num_rows+1,num_cols), dtype=int)
-        v_matrix = np.zeros((num_rows,num_cols+1), dtype=int)
+        value = "value"
+        table.set(state1, value)
 
-        h_matrix = np.reshape(h_list, h_matrix.shape)
-        v_matrix = np.reshape(v_list, v_matrix.shape)
+        self.assertEqual(table.get(state1), value)
+        self.assertEqual(table.get(state2), value)
 
-        new_h_list = np.fliplr(h_matrix).ravel()
-        new_v_list = np.fliplr(v_matrix).ravel()
-
-        new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
-        return "".join(map(str, new_state_indexes))
-
-    def check_h_and_v(state, num_rows, num_cols):
-        state_indexes = list(map(int, list(state.dbn_string())))
-        
-        h_edges = (num_rows+1)*num_cols
-
-        h_list = state_indexes[:h_edges]
-        v_list = state_indexes[h_edges:]
-
-        h_matrix = np.zeros((num_rows+1,num_cols), dtype=int)
-        v_matrix = np.zeros((num_rows,num_cols+1), dtype=int)
-
-        h_matrix = np.reshape(h_list, h_matrix.shape)
-        v_matrix = np.reshape(v_list, v_matrix.shape)
-
-        h_matrix = np.flipud(h_matrix)
-        v_matrix = np.flipud(v_matrix)
-
-        new_h_list = np.fliplr(h_matrix).ravel()
-        new_v_list = np.fliplr(v_matrix).ravel()
-
-        new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
-        return "".join(map(str, new_state_indexes))
-    
-    #only for square boards
-    def check_diag_1(state, num_rows, num_cols):
-        state_indexes = list(map(int, list(state.dbn_string())))
-        
-        h_edges = (num_rows+1)*num_cols
-
-        h_list = state_indexes[:h_edges]
-        v_list = state_indexes[h_edges:]
-
-        h_matrix = np.zeros((num_rows+1,num_cols), dtype=int)
-        v_matrix = np.zeros((num_rows,num_cols+1), dtype=int)
-
-        h_matrix = np.reshape(h_list, h_matrix.shape)
-        v_matrix = np.reshape(v_list, v_matrix.shape)
-
-        new_h_list = np.rot90(v_matrix, 3).ravel()
-        new_v_list = np.rot90(h_matrix, 3).ravel()
-
-        new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
-        return "".join(map(str, new_state_indexes))
-
-    #only for square boards
-    def check_diag_2(state, num_rows, num_cols):
-        state_indexes = list(map(int, list(state.dbn_string())))
-        
-        h_edges = (num_rows+1)*num_cols
-
-        h_list = state_indexes[:h_edges]
-        v_list = state_indexes[h_edges:]
-
-        h_matrix = np.zeros((num_rows+1,num_cols), dtype=int)
-        v_matrix = np.zeros((num_rows,num_cols+1), dtype=int)
-
-        h_matrix = np.reshape(h_list, h_matrix.shape)
-        v_matrix = np.reshape(v_list, v_matrix.shape)
-
-        new_h_list = np.rot90(v_matrix, 3).ravel()
-        new_v_list = np.rot90(h_matrix, 3).ravel()
-
-        new_state_indexes = np.concatenate((new_h_list, new_v_list), axis=None)
-        return "".join(map(str, new_state_indexes))
-
-class TTable(Transposition_Table):
-    # TODO:
-    def _hash_state(self, state):
-        # chains_info = chain_heuristic(state)
-        # symmetric_state = find_representative(state)
-        # hash_hex = symmetric_state.dbn_string()
-        
-        # temp:
-        hash_hex = state.dbn_string()
-        return hash_hex
-    
+if __name__ == '__main__':
+    unittest.main()
