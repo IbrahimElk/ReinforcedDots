@@ -6,7 +6,7 @@ from dotsandboxes_agent.minimax.transpositon_minimax import minimax_transpositio
 from dotsandboxes_agent.minimax.symmetry_minimax import minimax_symmetry_search
 from dotsandboxes_agent.minimax.chains_minimax import minimax_chains_search
 from dotsandboxes_agent.minimax.template_minimax import minimax_naive_search
-from dotsandboxes_agent.alphabeta_minimax import minimax_alphabeta_search
+from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search
 
 from open_spiel.python.bots import human
 from open_spiel.python.bots import uniform_random

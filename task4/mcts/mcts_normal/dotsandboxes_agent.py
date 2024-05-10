@@ -20,8 +20,7 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from open_spiel.python.algorithms import evaluate_bots
-from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search 
-from transposition_table import TTable
+import mcts_normal.mcts as mcts
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
 
@@ -50,13 +49,14 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.cache = TTable()
 
     def restart_at(self, state):
         """Starting a new game in the given state.
 
         :param state: The initial state of the game.
         """
+        pass
+
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
@@ -78,14 +78,18 @@ class Agent(pyspiel.Bot):
 
         # FIXME: moet ik maximising player hier specifieren? 
         cloned_state = state.clone()
-        _, action = minimax_alphabeta_search(cloned_state.get_game(), 
-                                            self.cache,
-                                            cloned_state,
-                                            #FIXME: klopt dit ?? maakt het uit wie de maximising player is? 
-                                            maximum_depth=2,
-                                            maximizing_player_id=self.player_id)
+        rng = np.random.RandomState(None)
+        evaluator = mcts.RandomRolloutEvaluator(1, rng)
+        bot = mcts.MCTSBot(cloned_state.get_game(),
+                           2,
+                           1000,
+                           evaluator,
+                           random_state=rng,
+                           solve=True,
+                           verbose=False)
+        action = bot.step(cloned_state)
         t2 = time.time()
-        print("time step function of minimax agent.")
+        print("time step function of normal mcts agent.")
         print(t2 - t1)
         return action
 
