@@ -273,7 +273,7 @@ class StrategyAdvisor :
         elif direction.value == Directions.UP.value:
             action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
             return action
-        elif directions.value == Directions.LEFT.value:
+        elif direction.value == Directions.LEFT.value:
             action = self.action_id(CellOrientation.VERTICAL, u, v)
             return action
         else : 

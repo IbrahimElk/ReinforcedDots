@@ -20,11 +20,13 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from open_spiel.python.algorithms import evaluate_bots
-from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search 
-from transposition_table import TTable
+
+from transposition_table import TOptimised_Table
+from chains.chains_strategy import StrategyAdvisor
+from evaluators import eval_maximize_difference
+from alphabeta import minimax_alphabeta_search
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
-
 
 def get_agent_for_tournament(player_id):
     """Change this function to initialize your agent.
@@ -50,13 +52,20 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.cache = TTable()
+        self.TT = TOptimised_Table()
+        self.SA = None
 
     def restart_at(self, state):
         """Starting a new game in the given state.
 
         :param state: The initial state of the game.
         """
+        params = state.get_game().get_parameters()
+        num_rows = params['num_rows']
+        num_cols = params['num_cols']
+        self.SA = StrategyAdvisor(num_rows, num_cols)
+
+ 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
@@ -64,7 +73,13 @@ class Agent(pyspiel.Bot):
         :param player_id: The ID of the player that executed an action.
         :param action: The action which the player executed.
         """
-        pass
+        if self.SA is None: 
+            logger.info("self.SA is None in inform_action")
+            self.restart_at(state)
+
+        if player_id != self.player_id:
+            #FIXME: run heurstic value on state and store in TT ?
+            self.SA.update_action(action)
 
     def step(self, state):
         """Returns the selected action in the given state.
@@ -73,21 +88,41 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # FIXME: maximum tijd 200ms. 
+        # maximum tijd 200ms !!! 
         t1 = time.time()
 
-        # FIXME: moet ik maximising player hier specifieren? 
-        cloned_state = state.clone()
-        _, action = minimax_alphabeta_search(cloned_state.get_game(), 
-                                            self.cache,
-                                            cloned_state,
-                                            #FIXME: klopt dit ?? maakt het uit wie de maximising player is? 
-                                            maximum_depth=2,
+        if self.SA is None: 
+            logger.info("self.SA is None in step")
+            self.restart_at(state)
+
+        max_allowed_depth = 2
+
+        value, best_action = minimax_alphabeta_search(game=state.get_game(),
+                                            state=state.clone(),
+                                            transposition_table=self.TT, 
+                                            strategy_advisor=self.SA,
+                                            maximum_depth=max_allowed_depth,
+                                            value_function=eval_maximize_difference,
                                             maximizing_player_id=self.player_id)
+
+        self.SA.update_action(best_action)
+
+        print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
+        print(f"the minimax value is : {value}")
+
+        if value > 0 :
+            print(f"In the simulation, Player {self.player_id} wins.")
+        elif value < 0 : 
+            print(f"In the simulation, Player {self.player_id} wins.")
+        else : 
+            print("In the simulation, It's a draw")
+
         t2 = time.time()
-        print("time step function of minimax agent.")
-        print(t2 - t1)
-        return action
+        print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action.")
+
+        return best_action
+
+
 
 def test_api_calls():
     """This method calls a number of API calls that are required for the
