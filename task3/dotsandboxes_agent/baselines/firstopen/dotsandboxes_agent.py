@@ -1,7 +1,12 @@
+#!/usr/bin/env python3
+# encoding: utf-8
 """
-A RANDOM dotsandboxes_agent.py
+dotsandboxes_agent.py
 
-the file must be called dotsandboxes_agent.py in order to use the tournament.py file. 
+Extend this class to provide an agent that can participate in a tournament.
+
+Created by Pieter Robberechts, Wannes Meert.
+Copyright (c) 2022 KU Leuven. All rights reserved.
 """
 
 import sys
@@ -64,10 +69,9 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # Plays random action, change with your best strategy
+        # Plays first action
         legal_actions = state.legal_actions()
-        rand_idx = random.randint(0, len(legal_actions) - 1)
-        action = legal_actions[rand_idx]
+        action = legal_actions[0]
         return action
 
 
@@ -92,4 +96,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
-
