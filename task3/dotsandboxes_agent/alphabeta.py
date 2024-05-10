@@ -9,6 +9,7 @@ sys.path.append(package_directory)
 from transposition_table import TOptimised_Table
 from chains.chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
+from chains import eval_function_chains
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TOptimised_Table, SA:StrategyAdvisor):
@@ -144,6 +145,7 @@ def main():
                                         transposition_table=TT, 
                                         strategy_advisor=SA,
                                         maximum_depth=max_allowed_depth,
+                                        # TODO: can be changed to eval_maximize_difference
                                         value_function=eval_maximize_difference,
                                         state=state.clone())
 
