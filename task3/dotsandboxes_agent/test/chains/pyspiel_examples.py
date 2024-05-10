@@ -21,7 +21,7 @@ def single_singleton(IS):
     num_rows = params['num_rows']
     num_cols = params['num_cols']
     
-    SA = StrategyAdvisor(num_rows,num_cols)
+    SA = StrategyAdvisor(num_rows, num_cols)
 
     action1 = SA.action_id(CellOrientation.HORIZONTAL,  0, 0)
     action2 = SA.action_id(CellOrientation.HORIZONTAL,  1, 0)
@@ -30,7 +30,72 @@ def single_singleton(IS):
     IS.apply_action(action1)
     IS.apply_action(action2)
     IS.apply_action(action3)
-#  
+
+# ┌───┬───┐
+# │ 2 │ 2 │
+# ├───┼───┤
+# │       │
+# └───┴╴ ╶┘
+def debug_example1(IS):
+    """
+    player 2 is aan de beurt
+    """
+    params = IS.get_game().get_parameters()
+    num_rows = params['num_rows']
+    num_cols = params['num_cols']
+    
+    SA = StrategyAdvisor(num_rows ,num_cols)
+
+    # 1
+    action1 = SA.action_id(CellOrientation.HORIZONTAL,  0, 0)
+    # print(action1)
+    # 2
+    action2 = SA.action_id(CellOrientation.HORIZONTAL,  1, 0)
+    # print(action2)
+    # 1
+    action3 = SA.action_id(CellOrientation.VERTICAL,    0, 1)
+    # print(action3)
+    # 2
+    action4 = SA.action_id(CellOrientation.VERTICAL,    0, 0)
+    # print(action4)
+    # 2
+    action5 = SA.action_id(CellOrientation.HORIZONTAL, 1, 1)
+    # print(action5)
+    # 1
+    action6 = SA.action_id(CellOrientation.HORIZONTAL, 2, 0)
+    # print(action6)
+    # 2
+    action7 = SA.action_id(CellOrientation.VERTICAL, 1, 2)
+    # print(action7)
+    # 1
+    action8 = SA.action_id(CellOrientation.HORIZONTAL, 0, 1)
+    # print(action8)
+    # 2
+    action9 = SA.action_id(CellOrientation.VERTICAL, 0, 2)
+    # print(action9)
+    # 2
+    action10 = SA.action_id(CellOrientation.VERTICAL, 1, 0)
+    # print(action10)
+
+    # action11 = SA.action_id(CellOrientation.HORIZONTAL, 2, 1)
+    # print(action11)
+
+    # action12 = SA.action_id(CellOrientation.VERTICAL, 1, 1)
+    # print(action12)
+
+    IS.apply_action(action1)
+    IS.apply_action(action2)
+    IS.apply_action(action3)
+
+    IS.apply_action(action4)
+    IS.apply_action(action5)
+    IS.apply_action(action6)
+
+    IS.apply_action(action7)
+    IS.apply_action(action8)
+    IS.apply_action(action9)
+    IS.apply_action(action10)
+    
 #      *----*----*
 #  	   |         |  
 #      *----*----*

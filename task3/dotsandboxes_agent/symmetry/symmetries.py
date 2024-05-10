@@ -9,7 +9,8 @@ import symmetry.util as s
 # tal and vertical symmetry, and square boards have diagonal
 # symmetry.
 
-# # TODO: REDUNDANTIE:
+
+# only needed for some tests:
 def _find_all_symmetries(state, num_rows, num_cols):
     """shouldnt be used, `if elif` etc. is better. """
     s1 = check_horizontal(state, num_rows, num_cols)

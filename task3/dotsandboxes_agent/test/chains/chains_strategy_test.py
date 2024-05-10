@@ -160,20 +160,48 @@ class TestStrategyAdvisor(unittest.TestCase):
         SA = StrategyAdvisor(10,10)
 
         # Test update using action ID
-        action1 = SA.action_id(CellOrientation.HORIZONTAL, 2, 3)
+        action1 = SA.action_id(CellOrientation.HORIZONTAL, 0, 0)
         SA.update_action(action1)
-        self.assertEqual(SA.h_[2][3], 1)
-        self.assertEqual(SA.cells[2][3], 1)
+        self.assertEqual(SA.h_[0][0], 1)
+        self.assertEqual(SA.cells[0][0], 1)
 
-        action2 = SA.action_id(CellOrientation.VERTICAL, 1, 2)
+        action2 = SA.action_id(CellOrientation.VERTICAL, 0, 0)
         SA.update_action(action2)
-        self.assertEqual(SA.v_[1][2], 1)
-        self.assertEqual(SA.cells[1][2], 1)
+        self.assertEqual(SA.v_[0][0], 1)
+        self.assertEqual(SA.cells[0][0], 2)
+
+        action3 = SA.action_id(CellOrientation.VERTICAL, 0, 1)
+        SA.update_action(action3)
+        self.assertEqual(SA.v_[0][1], 1)
+        self.assertEqual(SA.cells[0][0], 3)
+        self.assertEqual(SA.cells[0][1], 1)
+
+        self.assertEqual(SA.h_[1][0], 0)
+        self.assertEqual(SA.cells[1][0], 0)
+        self.assertEqual(SA.cells[1][1], 0)
+        self.assertEqual(SA.cells[0][2], 0)
 
     def test_update_with_orientation_and_coords(self):
         SA = StrategyAdvisor(10,10)
 
-        # Test update using orientation and coordinates
+        SA.update_edge(CellOrientation.HORIZONTAL, 0, 0)
+        self.assertEqual(SA.h_[0][0], 1)
+        self.assertEqual(SA.cells[0][0], 1)
+
+        SA.update_edge(CellOrientation.VERTICAL, 0, 0)
+        self.assertEqual(SA.v_[0][0], 1)
+        self.assertEqual(SA.cells[0][0], 2)
+
+        SA.update_edge(CellOrientation.VERTICAL, 0, 1)
+        self.assertEqual(SA.v_[0][1], 1)
+        self.assertEqual(SA.cells[0][0], 3)
+        self.assertEqual(SA.cells[0][1], 1)
+
+        self.assertEqual(SA.h_[1][0], 0)
+        self.assertEqual(SA.cells[1][0], 0)
+        self.assertEqual(SA.cells[1][1], 0)
+        self.assertEqual(SA.cells[0][2], 0)
+
         SA.update_edge(CellOrientation.HORIZONTAL, 1, 2)
         self.assertEqual(SA.h_[1][2], 1)
         self.assertEqual(SA.cells[1][2], 1)
@@ -182,16 +210,16 @@ class TestStrategyAdvisor(unittest.TestCase):
         self.assertEqual(SA.v_[2][3], 1)
         self.assertEqual(SA.cells[2][3], 1)
 
-    # -------------------------------------------------------------------
-    # -------------------------------------------------------------------
-    #                           SAFE3
-    # -------------------------------------------------------------------
-    # -------------------------------------------------------------------
+    # # -------------------------------------------------------------------
+    # # -------------------------------------------------------------------
+    # #                           SAFE3
+    # # -------------------------------------------------------------------
+    # # -------------------------------------------------------------------
 
-    def test_safe3_with_single_singleton(self):
+    def test_safe3_with_single_singleton_1x1(self):
         SA = StrategyAdvisor(10,10)
 
-        ex.single_singleton(SA)
+        ex.single_singleton_1x1(SA)
         actions = SA.safe3()
         self.assertEqual(len(actions), 1)
         expected_action = SA.action_id(CellOrientation.VERTICAL, 0, 0)
@@ -201,10 +229,35 @@ class TestStrategyAdvisor(unittest.TestCase):
         actions = SA.safe3()
         self.assertEqual(actions, None)
 
-    def test_safe3_with_single_doubleton(self):
+    def test_safe3_with_single_singleton_2x2(self):
+        SA = StrategyAdvisor(10,10)
+
+        ex.single_singleton_2x2(SA)
+        actions = SA.safe3()
+        self.assertEqual(len(actions), 1)
+        expected_action = SA.action_id(CellOrientation.VERTICAL, 0, 0)
+        self.assertEqual(actions[0], expected_action)
+
+        SA.update_action(expected_action)
+        actions = SA.safe3()
+        self.assertEqual(actions, None)
+    def test_safe3_with_single_doubleton_1x2(self):
         SA = StrategyAdvisor(10,10)
         
-        ex.single_doubleton(SA)
+        ex.single_doubleton_1x2(SA)
+        actions = SA.safe3()
+        self.assertEqual(len(actions), 1)
+        expected_action = SA.action_id(CellOrientation.VERTICAL, 0, 1)
+        self.assertEqual(actions[0], expected_action)
+        
+        SA.update_action(expected_action)
+        actions = SA.safe3()
+        self.assertEqual(actions, None)
+
+    def test_safe3_with_single_doubleton_2x2(self):
+        SA = StrategyAdvisor(10,10)
+        
+        ex.single_doubleton_2x2(SA)
         actions = SA.safe3()
         self.assertEqual(len(actions), 1)
         expected_action = SA.action_id(CellOrientation.VERTICAL, 0, 1)
@@ -228,12 +281,12 @@ class TestStrategyAdvisor(unittest.TestCase):
     # -------------------------------------------------------------------
 
 
-    # def test_side3_with_example_paper(self):
-    #     SA = StrategyAdvisor(10, 10)
+    def test_side3_with_example_paper(self):
+        SA = StrategyAdvisor(10, 10)
 
-    #     ex.example_paper(SA)
-    #     cell3s = SA.side3()
-    #     self.assertEqual([(0,0), (0,2), (2,5)], cell3s)
+        ex.example_paper(SA)
+        cell3s = SA.side3()
+        self.assertEqual([(0,0), (0,2), (2,5)], cell3s)
 
 
     # -------------------------------------------------------------------
@@ -355,9 +408,9 @@ class TestStrategyAdvisor(unittest.TestCase):
 
         action6     = SA.action_id(CellOrientation.HORIZONTAL,      1, 0)   
         action7     = SA.action_id(CellOrientation.HORIZONTAL,      2, 0)   
-        action8     = SA.action_id(CellOrientation.VERTICAL,        2, 1)   
-        action9     = SA.action_id(CellOrientation.VERTICAL,        2, 2)   
 
+        action8     = SA.action_id(CellOrientation.VERTICAL,        2, 1) 
+        action9     = SA.action_id(CellOrientation.VERTICAL,        2, 2)
         action10    = SA.action_id(CellOrientation.VERTICAL,        2, 4)   
         action11    = SA.action_id(CellOrientation.VERTICAL,        2, 3)   
         
@@ -365,6 +418,7 @@ class TestStrategyAdvisor(unittest.TestCase):
                             [action4], [action5], [action6],
                             [action7], [action8], [action9],
                             [action10, action11], [action11]]
+        
         actions = SA.unsafe3()
         counter = 0
         while actions :
@@ -380,25 +434,28 @@ class TestStrategyAdvisor(unittest.TestCase):
     # -------------------------------------------------------------------
     # -------------------------------------------------------------------
     def test_side1(self):
-        seed = None
+        seed = 0
         SA = StrategyAdvisor(3, 6)
         ex.example_paper(SA)
 
-        # print("-----------------")
-        # print_matrix(SA.cells)
-        # print("-----------------")
-        # print_matrix(SA.h_)
-        # print("-----------------")
-        # print_matrix(SA.v_)
-        # print("-----------------")
+        print("-----------------")
+        print_matrix(SA.cells)
+        print("-----------------")
+        print_matrix(SA.h_)
+        print("-----------------")
+        print_matrix(SA.v_)
+        print("-----------------")
         
         actions = SA.side1(seed=seed)
+        print(actions)
+        print(SA.get_tabular_form(actions[0]))
 
         action1 = SA.action_id(CellOrientation.HORIZONTAL,    3, 4)
+        print(action1)
         action2 = SA.action_id(CellOrientation.HORIZONTAL,    2, 4)
         action3 = SA.action_id(CellOrientation.VERTICAL,      2, 4)
 
-        self.assertTrue(actions == action1 or actions == action2 or actions == action3)
+        self.assertTrue(actions[0] == action1 or actions[0] == action2 or actions[0] == action3)
 
         SA.update_action(action1)
         actions = SA.side1(seed=seed)
@@ -478,6 +535,22 @@ class TestStrategyAdvisor(unittest.TestCase):
         self.assertNotEqual(OA.v_,                         CA.v_)
         self.assertNotEqual(OA.cells,                      CA.cells)
         self.assertNotEqual(len(OA.chains),   len(CA.chains))
+
+
+
+    # -------------------------------------------------------------------
+    # -------------------------------------------------------------------
+    #                           GET_AVAILABLE_ACTIONS 
+    # -------------------------------------------------------------------
+    # -------------------------------------------------------------------
+
+    # ┌───┬───┐
+    # │ 2 │    
+    # ├───┼╴ ╶┤
+    # │ 1 │   │
+    # └───┴───┘
+
+
 
 if __name__ == '__main__':
     unittest.main()

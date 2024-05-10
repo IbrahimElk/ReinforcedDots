@@ -1,21 +1,87 @@
-#  
+  
 #      *----*
 #  	        |
 #      *----*
-def single_singleton(SA):
+def single_singleton_1x1(SA):
     SA.cells[0][0] = 3
-    SA.cells[1][0] = 1
-    SA.cells[0][1] = 1
 
     SA.h_[0][0] = 1
     SA.h_[1][0] = 1
     SA.v_[0][1] = 1
 
+
+#      *----*    *
+#  	        |
+#      *----*    *
+# 
+#      *    *    *
+def single_singleton_2x2(SA):
+    """single singleton in 2x2 grid"""
+    SA.cells[0][0] = 3
+    SA.cells[1][0] = 1
+    SA.cells[0][1] = 1
+    SA.cells[1][1] = 0
+
+    SA.h_[0][0] = 1
+    SA.h_[1][0] = 1
+    SA.v_[0][1] = 1
+
+# ┌───┬───┐
+# │ 2 │ 2 │
+# ├───┼───┤
+# │       │
+# └───┴╴ ╶┘
+def debug_example1_2x2(SA):
+    SA.h_[0][0] = 1
+    SA.h_[0][1] = 1
+    SA.h_[1][0] = 1
+    SA.h_[1][1] = 1
+    SA.h_[2][0] = 1
+
+    SA.v_[0][0] = 1
+    SA.v_[0][1] = 1
+    SA.v_[0][2] = 1
+    SA.v_[1][0] = 1
+    SA.v_[1][2] = 1
+
+    SA.cells[0][0] = 4
+    SA.cells[0][1] = 4
+    # SA.cells[0][2] = 1
+
+    SA.cells[1][0] = 3
+    SA.cells[1][1] = 2
+    # SA.cells[1][2] = 1
+    
+    # SA.cells[2][0] = 1
+    # SA.cells[2][1] = 1
+    # SA.cells[2][2] = 0
+
 #  
 #      *----*----*
 #  	   |         |  
 #      *----*----*
-def single_doubleton(SA):
+def single_doubleton_1x2(SA):
+    """ dimensions should be 1 x 2"""
+    SA.cells[0][0] = 3
+    SA.cells[0][1] = 3
+    # SA.cells[1][0] = 1
+    # SA.cells[1][1] = 1
+    # SA.cells[0][2] = 1
+
+    SA.h_[0][0] = 1
+    SA.h_[0][1] = 1
+    SA.h_[1][0] = 1
+    SA.h_[1][1] = 1
+
+    SA.v_[0][0] = 1
+    SA.v_[0][2] = 1
+
+#  
+#      *----*----*
+#  	   |         |  
+#      *----*----*
+def single_doubleton_2x2(SA):
+    """ dimensions should be 2 x 2"""
     SA.cells[0][0] = 3
     SA.cells[0][1] = 3
     SA.cells[1][0] = 1
@@ -46,9 +112,9 @@ def vertical_half_open_chain(SA):
     SA.v_[1][1] = 1
 
     SA.cells[0][0] = 3
-    SA.cells[0][1] = 1
+    # SA.cells[0][1] = 1
     SA.cells[1][0] = 2
-    SA.cells[1][1] = 1
+    # SA.cells[1][1] = 1
 
 #      *----*---*
 #  	   |		|
@@ -64,8 +130,8 @@ def horizontal_half_open_chain2(SA):
 
     SA.cells[0][0] = 3
     SA.cells[0][1] = 2
-    SA.cells[0][2] = 1
-    SA.cells[1][0] = 1
+    # SA.cells[0][2] = 1
+    # SA.cells[1][0] = 1
 
 #      *----*---*
 #  	   |		
@@ -81,8 +147,8 @@ def horizontal_half_open_chain1(SA):
 
     SA.cells[0][0] = 3
     SA.cells[0][1] = 2
-    SA.cells[1][0] = 1
-    SA.cells[1][1] = 1
+    # SA.cells[1][0] = 1
+    # SA.cells[1][1] = 1
 
 #      *----*---*---*---*
 #  	   |		        |
@@ -109,12 +175,12 @@ def horizontal_closed_chain(SA):
     SA.cells[0][1] = 2
     SA.cells[0][2] = 2
     SA.cells[0][3] = 3
-    SA.cells[0][4] = 1
+    # SA.cells[0][4] = 1
 
-    SA.cells[1][0] = 1
-    SA.cells[1][1] = 1
-    SA.cells[1][2] = 1
-    SA.cells[1][3] = 1
+    # SA.cells[1][0] = 1
+    # SA.cells[1][1] = 1
+    # SA.cells[1][2] = 1
+    # SA.cells[1][3] = 1
 
 
 # hetvolgende maar transposed:
@@ -143,12 +209,12 @@ def vertical_closed_chain(SA):
     SA.cells[1][0] = 2
     SA.cells[2][0] = 2
     SA.cells[3][0] = 3
-    SA.cells[4][0] = 1
+    # SA.cells[4][0] = 1
 
-    SA.cells[0][1] = 1
-    SA.cells[1][1] = 1
-    SA.cells[2][1] = 1
-    SA.cells[3][1] = 1
+    # SA.cells[0][1] = 1
+    # SA.cells[1][1] = 1
+    # SA.cells[2][1] = 1
+    # SA.cells[3][1] = 1
 
 # Solving Dots-And-Boxes
 # Joseph K. Barker and Richard E Korf

@@ -27,15 +27,19 @@ Action = int
 
 class StrategyAdvisor : 
     def __init__(self, rows, cols):
+        self.num_rows = rows
+        self.num_cols = cols
+        
         self.rows = rows
         self.cols = cols
+
         self.h_ = [[0] * cols for _ in range(rows + 1)]
         self.v_ = [[0] * (cols + 1) for _ in range(rows)]
         self.cells = [[0] * cols for _ in range(rows)]
         self.chains = {"half_open": [], "closed": []}
 
     def clone(self):
-        cloned_advisor = StrategyAdvisor(self.rows, self.cols)
+        cloned_advisor = StrategyAdvisor(self.num_rows, self.num_cols)
         cloned_advisor.h_ = [row[:] for row in self.h_]
         cloned_advisor.v_ = [row[:] for row in self.v_]
         cloned_advisor.cells = [row[:] for row in self.cells]
@@ -43,18 +47,18 @@ class StrategyAdvisor :
         return cloned_advisor
 
     def get_tabular_form(self, action):
-        maxh = (self.rows + 1) * self.cols
+        maxh = (self.num_rows + 1) * self.num_cols
         if (action < maxh) : 
             # Horizontal
             orien = CellOrientation.HORIZONTAL
-            row = math.floor(action / self.cols)
-            col = action % self.cols
+            row = math.floor(action / self.num_cols)
+            col = action % self.num_cols
         else : 
             # Vertical
             action -= maxh
             orien = CellOrientation.VERTICAL
-            row = math.floor(action / (self.cols + 1))
-            col = action % (self.cols + 1)
+            row = math.floor(action / (self.num_cols + 1))
+            col = action % (self.num_cols + 1)
 
         return orien, row, col
         
@@ -92,15 +96,11 @@ class StrategyAdvisor :
         """
 
         action = 0
-        maxh  = (self.rows + 1) * self.cols
+        maxh  = (self.num_rows + 1) * self.num_cols
         if (orientation_.value == CellOrientation.HORIZONTAL.value):
-            action = row_ * self.cols + col_
-            # print("action1")
-            # print(action)
+            action = row_ * self.num_cols + col_
         elif (orientation_.value == CellOrientation.VERTICAL.value):
-            action = maxh + row_ * (self.cols + 1) + col_
-            # print("action2")
-            # print(action)
+            action = maxh + row_ * (self.num_cols + 1) + col_
         else : 
             raise ValueError("The orientation_ parameter must be of type CellOrientation")
 
@@ -115,22 +115,21 @@ class StrategyAdvisor :
                 if self.cells[row][col] == 3:
                     if self.v_[row][col] < 1:
                         if col == 0 or self.cells[row][col-1] != 2 :
-                            action = self.action_id(CellOrientation.VERTICAL,row,col)
+                            action = self.action_id(CellOrientation.VERTICAL, row, col)
                             return [action]
                         
                     elif self.h_[row][col] < 1:
                         if row == 0 or self.cells[row-1][col] != 2:
-                            action = self.action_id(CellOrientation.HORIZONTAL,row,col)
+                            action = self.action_id(CellOrientation.HORIZONTAL, row, col)
                             return [action]
 
                     elif self.v_[row][col+1] < 1:
                         if col == self.cols-1 or self.cells[row][col+1] != 2:
-                            action = self.action_id(CellOrientation.VERTICAL,row,col+1)
+                            action = self.action_id(CellOrientation.VERTICAL, row, col+1)
                             return [action]
-
                     else :
                         if row == self.rows-1 or self.cells[row+1][col] != 2:
-                            action = self.action_id(CellOrientation.HORIZONTAL,row+1,col)
+                            action = self.action_id(CellOrientation.HORIZONTAL, row+1, col)
                             return [action]
         return None
     
@@ -191,7 +190,6 @@ class StrategyAdvisor :
             if (amount_of_closed_chains == 1 and 
                 amount_of_half_open_chains == 0 and 
                 amount_of_capturable_boxes == 4):
-                # print("ohh nee")
 
                 chain_data = self.chains["closed"][0]
                 dhh_action = self.get_double_half_haerted(
@@ -204,9 +202,7 @@ class StrategyAdvisor :
                 return [dhh_action, fb_action]
             
             else :
-                # print("dit zou zeer dissapointed zijn")
                 chain_data = self.chains["closed"][0]
-
                 fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
@@ -216,7 +212,6 @@ class StrategyAdvisor :
             if (amount_of_closed_chains == 0 and 
                 amount_of_half_open_chains == 1 and 
                 amount_of_capturable_boxes == 2):
-                # print("excuseer? ")
 
                 chain_data = self.chains["half_open"][0]
                 shh_action = self.get_single_half_haerted(
@@ -229,9 +224,7 @@ class StrategyAdvisor :
                 return [shh_action, fb_action]
             
             else :
-                # print("hier wel?")
                 chain_data = self.chains["half_open"][0]
-
                 fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
@@ -240,25 +233,31 @@ class StrategyAdvisor :
 
     def get_single_half_haerted(self, half_open_chain: list[(int,int)], directions:list[Directions]):
         assert len(half_open_chain) == 2
+        assert len(directions) == 2
 
-        u, v = half_open_chain[1]
-        direction = directions[1]
+        u1, v1 = half_open_chain[0]
+        u2, v2 = half_open_chain[1]
 
-        if direction == Directions.DOWN:
-            # print(CellOrientation.HORIZONTAL, u+1, v)
-            action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
+        if self.cells[u1][v1] == 3:
+            nu, nv = u2, v2
+            nd = directions[1]
+        elif self.cells[u2][v2] == 3: 
+            nu, nv = u1, v1
+            nd = directions[0]
+        else :
+            assert ValueError("Error in get_single_half_haerted")
+
+        if nd.value == Directions.DOWN.value:
+            action = self.action_id(CellOrientation.HORIZONTAL, nu+1, nv)
             return action
-        elif direction == Directions.UP:
-            # print(CellOrientation.HORIZONTAL, u-1, v)
-            action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
+        elif nd.value == Directions.UP.value:
+            action = self.action_id(CellOrientation.HORIZONTAL, nu, nv)
             return action
-        elif directions == Directions.LEFT:
-            # print(CellOrientation.VERTICAL, u, v)
-            action = self.action_id(CellOrientation.VERTICAL, u, v)
+        elif nd.value == Directions.LEFT.value:
+            action = self.action_id(CellOrientation.VERTICAL, nu , nv)
             return action
         else : 
-            # print(CellOrientation.VERTICAL, u, v+1)
-            action = self.action_id(CellOrientation.VERTICAL, u, v+1)
+            action = self.action_id(CellOrientation.VERTICAL, nu, nv+1)
             return action
 
     def get_double_half_haerted(self, closed_chain:list[(int,int)], directions:list[Directions]):
@@ -268,39 +267,41 @@ class StrategyAdvisor :
         u, v = closed_chain[1]
         direction = directions[1]
 
-        if direction == Directions.DOWN:
-            # print(CellOrientation.HORIZONTAL, u+1, v)
+        if direction.value == Directions.DOWN.value:
             action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
             return action
-        elif direction == Directions.UP:
-            # print(CellOrientation.HORIZONTAL, u-1, v)
+        elif direction.value == Directions.UP.value:
             action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
             return action
-        elif directions == Directions.LEFT:
-            # print(CellOrientation.VERTICAL, u, v)
+        elif directions.value == Directions.LEFT.value:
             action = self.action_id(CellOrientation.VERTICAL, u, v)
             return action
         else : 
-            # print(CellOrientation.VERTICAL, u, v+1)
             action = self.action_id(CellOrientation.VERTICAL, u, v+1)
             return action
 
     def get_fill_box(self, closed_chain:list[(int,int)], directions:list[Directions]):
-        u, v = closed_chain[0]
-        direction = directions[0]
+        assert len(closed_chain) >= 1
+        assert len(directions) >= 1
 
-        if direction.value == Directions.DOWN.value:
-            # print(CellOrientation.HORIZONTAL, u+1, v)
-            action = self.action_id(CellOrientation.HORIZONTAL, u+1, v)
-        elif direction.value == Directions.UP.value:
-            # print(CellOrientation.HORIZONTAL, u-1, v)
-            action = self.action_id(CellOrientation.HORIZONTAL, u-1, v)
-        elif direction.value == Directions.LEFT.value:
-            # print(CellOrientation.VERTICAL, u, v)
-            action = self.action_id(CellOrientation.VERTICAL, u, v)
+        counter = 0
+        for u, v in closed_chain :
+            if self.cells[u][v] == 3:
+                nu, nv = u, v
+                nd = directions[counter]
+                break
+            counter += 1
+
+        if nd.value == Directions.UP.value:
+            action = self.action_id(CellOrientation.HORIZONTAL, nu, nv)
+        
+        elif nd.value == Directions.LEFT.value:
+            action = self.action_id(CellOrientation.VERTICAL, nu, nv)
+        
+        elif nd.value == Directions.DOWN.value:
+            action = self.action_id(CellOrientation.HORIZONTAL, nu+1, nv)
         else : 
-            # print(CellOrientation.VERTICAL, u, v+1)
-            action = self.action_id(CellOrientation.VERTICAL, u, v+1)
+            action = self.action_id(CellOrientation.VERTICAL, nu, nv+1)
 
         return action
 
@@ -308,90 +309,76 @@ class StrategyAdvisor :
         count+=1    
 
         if (k!=1 and self.v_[i][j]<1) :
+            dirhist.append(Directions.LEFT)
             if (j>0):  
-                dirhist.append(Directions.LEFT)
-
                 if (self.cells[i][j-1]>2): 
                     count+=1
                     loop=True
                     cellshist.append((i,j-1))
-                    # dirhist.append(Directions.LEFT)
 
                 elif (self.cells[i][j-1]>1):
-                    # dirhist.append(Directions.LEFT)
                     cellshist.append((i,j-1))
                     count, loop = self.incount(3,i,j-1, count, loop, cellshist, dirhist)
                 
-                dirhist.append(Directions.LEFT)
-
         elif (k!=2 and self.h_[i][j]<1) :
+            dirhist.append(Directions.UP)
             if (i>0):
-                dirhist.append(Directions.UP)
-
                 if (self.cells[i-1][j]>2):
                     count+=1
                     loop=True
                     cellshist.append((i-1,j))
-                    # dirhist.append(Directions.UP)
                     
                 elif (self.cells[i-1][j]>1):
                     cellshist.append((i-1,j))
-                    # dirhist.append(Directions.UP)
                     count, loop = self.incount(4,i-1,j, count, loop, cellshist, dirhist)
             
         elif (k!=3 and self.v_[i][j+1]<1):
+            dirhist.append(Directions.RIGHT)
             if (j < self.cols-1):
-    
-                dirhist.append(Directions.RIGHT)
 
                 if (self.cells[i][j+1]>2):
                     count+=1
                     loop=True
                     cellshist.append((i,j+1))
-                    # dirhist.append(Directions.RIGHT)
 
                 elif (self.cells[i][j+1]>1):
                     cellshist.append((i,j+1))
-                    # dirhist.append(Directions.RIGHT)
                     count, loop = self.incount(1,i,j+1, count, loop, cellshist, dirhist)
                 
 
         elif (k!=4 and self.h_[i+1][j]<1):
+            dirhist.append(Directions.DOWN)
             if (i< self.rows-1):
-            
-                dirhist.append(Directions.DOWN)
 
                 if (self.cells[i+1][j] > 2):
                     count+=1
                     loop= True
                     cellshist.append((i+1,j))
-                    # dirhist.append(Directions.DOWN)
 
                 elif (self.cells[i+1][j] > 1):
                     cellshist.append((i+1,j))
-                    # dirhist.append(Directions.DOWN)
                     count, loop = self.incount(2,i+1,j, count, loop, cellshist, dirhist)
 
         return count, loop
 
     # na de actie1 of actie2 beste actie te weten, dan beste actie na die actie te ondernemen? za
     def get_available_action(self, state):
-        # 1 singletons and doubletons
+        # 1) singletons and doubletons
         action = self.safe3()
         if action :
             return action
         
-        # 2 chains
+        # 2) chains
         actions = self.unsafe3()
         if actions :
             return actions
         
-        # 3 random safe edge 
+        # 3) random safe edge 
         action = self.side1()
         if action : 
             return action
         
-        # last resprt: 
+        # 4) last resort
         return state.legal_actions()
 
     def side1(self, seed=None):
