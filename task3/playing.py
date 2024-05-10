@@ -1,16 +1,17 @@
-from absl import app
-from absl import flags
+import os 
+import sys
 import numpy as np
 
-from dotsandboxes_agent.minimax.transpositon_minimax import minimax_transposition_search, Transposition_Table
-from dotsandboxes_agent.minimax.symmetry_minimax import minimax_symmetry_search
-from dotsandboxes_agent.minimax.chains_minimax import minimax_chains_search
-from dotsandboxes_agent.minimax.template_minimax import minimax_naive_search
-from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
 
 from open_spiel.python.bots import human
 from open_spiel.python.bots import uniform_random
+
 from dotsandboxes_agent.dotsandboxes_agent import get_agent_for_tournament
+# from baselines.firstopen import get_agent_for_tournament
+# from baselines.random import get_agent_for_tournament
+
 import pyspiel
 
 seed  = 12761381  # The seed to use for the RNG
@@ -43,33 +44,14 @@ def training(player0:str, player1:str):
     ]
 
     state = game.new_initial_state()
-    # Print the initial state
-    print("INITIAL STATE")
-    print(str(state))
 
     while not state.is_terminal():
         current_player = state.current_player()
-        # Decision node: sample action for the single current player
-        legal_actions = state.legal_actions()
-        for action in legal_actions:
-            print(
-                "Legal action: {} ({})".format(
-                    state.action_to_string(current_player, action), action
-                )
-            )
-        # if human, asks in terminal which move and returns the action. 
-        # if random, based on state, gives random action
-        
         action = agents[current_player].step(state)
+        agents[1-current_player].inform_action(state, current_player, action)
         action_string = state.action_to_string(current_player, action)
         print("Player ", current_player, ", chose action: ", action_string)
         state.apply_action(action)
-
-        print("")
-        print("NEXT STATE:")
-        print(str(state))
-        # if not state.is_terminal():
-            # print(str(state.observation_tensor()))
 
     # Game is now done. Print utilities for each player
     returns = state.returns()
@@ -77,19 +59,19 @@ def training(player0:str, player1:str):
         print("Utility for player {} is {}".format(pid, returns[pid]))
 
 
-
 if __name__ == "__main__":
-   p1 = "random"
-   p2 = "minimax"
-#  p = "random"
-   training(p1,p2)
-#    if current_player == 1 dan das P2 oftewel p1 = minimax. 
-#    if current_player == 0 dan das P1 oftewel
-   print("player0 corresponds to the first player that makes a move on the board.")
-   print(f"player0 is {p1} and player1 is {p2}")
+    p1 = "random"
+    p2 = "minimax"
+    #  p = "random"
+    training(p1,p2)
 
-   print("P2 on the board corresponds to player1")
-   print("P1 on the board corresponds to player0")
+    # if current_player == 1 dan das P2 oftewel p1 = minimax. 
+    # if current_player == 0 dan das P1 oftewel
+    print("player0 corresponds to the first player that makes a move on the board.")
+    print(f"player0 is {p1} and player1 is {p2}")
+
+    print("P2 on the board corresponds to player1")
+    print("P1 on the board corresponds to player0")
 
 
 
