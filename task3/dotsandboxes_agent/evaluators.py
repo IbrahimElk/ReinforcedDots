@@ -1,6 +1,6 @@
 import numpy as np
 
-def eval_function_minimize_difference(state, maximizing_player_id): 
+def eval_maximize_difference(state, maximizing_player_id): 
     params = state.get_game().get_parameters()
     num_rows = params['num_rows']
     num_cols = params['num_cols']

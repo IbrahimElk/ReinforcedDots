@@ -6,15 +6,14 @@ import numpy as np
 package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
-from transposition_table import TTable
+from transposition_table import TOptimised_Table
 from chains.chains_strategy import StrategyAdvisor
-from evaluators import eval_function_maximise_points, eval_function_minimize_opponent_points
-
+from evaluators import eval_maximize_difference
 # FIXME: draw game tree to see if it makes sense. 
 # TODO: output of evaluation function, should it consider the output space of the terminal states? 
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
-                maximizing_player_id, cache:TTable, SA:StrategyAdvisor):
+                maximizing_player_id, cache:TOptimised_Table, SA:StrategyAdvisor):
     
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
@@ -75,7 +74,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         return value
 
 def minimax_alphabeta_search(game,
-                            transposition_table:TTable,
+                            transposition_table:TOptimised_Table,
                             strategy_advisor:StrategyAdvisor,
                             state=None,
                             value_function=None,
@@ -111,7 +110,7 @@ def minimax_alphabeta_search(game,
     value = -float("inf")
     for action in possible_actions:
         child_state = state.clone()
-        child_SA = possible_actions.clone()
+        child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
         child_SA.update_action(action)
@@ -142,12 +141,12 @@ def main():
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
     
-    TT = TTable()
+    TT = TOptimised_Table()
     SA = StrategyAdvisor(num_rows,num_cols)
     value, action = minimax_alphabeta_search(game=game,
                                         transposition_table=TT, 
                                         strategy_advisor=SA,
-                                        value_function=eval_function_minimize_opponent_points)
+                                        value_function=eval_maximize_difference)
 
     print("next recommended action: ")
     print(action)    
