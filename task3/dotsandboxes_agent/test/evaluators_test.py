@@ -24,10 +24,10 @@ class TestEvaluators(unittest.TestCase):
         print("state")
         print(initial_state)
         
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, 0)
 
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 0)
 
         # add vertical line
@@ -35,10 +35,10 @@ class TestEvaluators(unittest.TestCase):
         print("state")
         print(initial_state)
 
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, -1)
         
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 1)
 
         # add horizontal line
@@ -46,10 +46,10 @@ class TestEvaluators(unittest.TestCase):
         print("state")
         print(initial_state)
 
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, -1)
 
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 1)
 
         # add vertical line
@@ -57,10 +57,10 @@ class TestEvaluators(unittest.TestCase):
         print("state")
         print(initial_state)
 
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, -1)
         
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 1)
 
         # add vertical line
@@ -68,20 +68,20 @@ class TestEvaluators(unittest.TestCase):
         print("state")
         print(initial_state)
 
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, -1)
 
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 1)
 
         initial_state.apply_action(6)
         print("state")
         print(initial_state)
 
-        val = ev.eval_function_minimize_difference(initial_state, maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, maximizing_player_id) 
         self.assertEqual(val, 0)
 
-        val = ev.eval_function_minimize_difference(initial_state, 1- maximizing_player_id) 
+        val = ev.eval_maximize_difference(initial_state, 1- maximizing_player_id) 
         self.assertEqual(val, 0)
 
 
