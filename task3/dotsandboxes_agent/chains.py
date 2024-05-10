@@ -1,4 +1,10 @@
 import numpy as np
+import os 
+import sys
+
+# current_dir = os.path.dirname(__file__)
+# mdir = os.path.abspath(os.path.join(current_dir, os.pardir, "dotsandboxes_agent"))
+# sys.path.append(mdir)
 
 """
 Chains are sequences of one or more capturable boxes ("corridors").
