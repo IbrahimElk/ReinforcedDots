@@ -411,27 +411,27 @@ class StrategyAdvisor :
             if pos:
                 x, y = pos
                 action = self.action_id(CellOrientation.HORIZONTAL, x, y)
-                return action
+                return [action]
             
             else:
                 pos = self.rand_vedge(i, j)
                 if pos:
                     x, y = pos
                     action = self.action_id(CellOrientation.VERTICAL, x, y)
-                    return action
+                    return [action]
                 
         else:
             pos = self.rand_vedge(i, j)
             if pos:
                 x, y = pos
                 action = self.action_id(CellOrientation.VERTICAL, x, y)
-                return action
+                return [action]
             else:
                 pos = self.rand_hedge(i, j)
                 if pos:
                     x, y = pos
                     action = self.action_id(CellOrientation.HORIZONTAL, x, y)
-                    return action
+                    return [action]
                 
         return None
 

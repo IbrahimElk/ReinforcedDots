@@ -76,12 +76,17 @@ class TOptimised_Table(TNaive_Table):
             self.symmhits += 1
             return self.cache[cache_result]
 
-        if num_rows == num_rows:
+        if num_rows == num_cols:
             cache_result = s.check_diag1(state, num_rows, num_cols)
             if cache_result in self.cache:
                 self.symmhits += 1
                 return self.cache[cache_result]
             cache_result = s.check_diag2(state, num_rows, num_cols)
+            if cache_result in self.cache:
+                self.symmhits += 1
+                return self.cache[cache_result]
+            
+            cache_result = s.check_h_diag1(state, num_rows, num_cols)
             if cache_result in self.cache:
                 self.symmhits += 1
                 return self.cache[cache_result]

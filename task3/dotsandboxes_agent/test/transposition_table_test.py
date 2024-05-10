@@ -147,6 +147,7 @@ class TestTOptimised_Table(unittest.TestCase):
 
         num_rows = x
         num_cols = y
+
         game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
         game = pyspiel.load_game(game_string)
 
@@ -159,9 +160,8 @@ class TestTOptimised_Table(unittest.TestCase):
         table.set(state1, value1)
         self.assertEqual(table.get(state1), value1)
 
-        table.set(state1, value2)
+        table.set(state2, value2)
         self.assertEqual(table.get(state1), value2)
-
         
         state2.apply_action(0)
         self.assertIsNotNone(table.get(state1))
@@ -197,12 +197,7 @@ class TestTOptimised_Table(unittest.TestCase):
         self.assertEqual(table.get_hits(), 3)
         self.assertEqual(table.get_misses(), 1)
     
-    def test_symmetries(self):
-        # horizontal_closed_chain is symmetrisch tegenover vertical_closed_chain
-        # horizontal_half_open_chain1 symmetrisch tegenover vertical_half_open_chain
-        pass
-
-
+    # horizontal_closed_chain is symmetrisch tegenover vertical_closed_chain
     def test_symmetries(self):
         table = T.TOptimised_Table()
         
@@ -210,7 +205,7 @@ class TestTOptimised_Table(unittest.TestCase):
         # if seed:
         #     r.seed(seed)
 
-        x = r.randint(5, 5)
+        x = r.randint(4, 4)
 
         num_rows = x
         num_cols = x
@@ -224,13 +219,34 @@ class TestTOptimised_Table(unittest.TestCase):
         ex.horizontal_closed_chain(state1)
         ex.vertical_closed_chain(state2)
 
-        print(pyspiel.serialize_game_and_state(game1, state1))
+        value = "value"
+        table.set(state1, value)
+
+        self.assertEqual(table.get(state1), value)
+        self.assertEqual(table.get(state2), value)
 
 
-        # print("state1")
-        # print(state1)
-        # print("state2")
-        # print(state2)
+    # horizontal_half_open_chain1 symmetrisch tegenover vertical_half_open_chain
+    def test_symmetries(self):
+        table = T.TOptimised_Table()
+        
+        # seed = None
+        # if seed:
+        #     r.seed(seed)
+
+        x = r.randint(4, 4)
+
+        num_rows = x
+        num_cols = x
+        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
+        game1 = pyspiel.load_game(game_string)
+        game2 = pyspiel.load_game(game_string)
+
+        state1 = game1.new_initial_state()
+        state2 = game2.new_initial_state()
+
+        ex.horizontal_half_open_chain1(state1)
+        ex.vertical_half_open_chain(state2)
 
         value = "value"
         table.set(state1, value)
