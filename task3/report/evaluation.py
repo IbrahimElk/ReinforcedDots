@@ -10,7 +10,7 @@ from minimax.transpositon_minimax import minimax_transposition_search, Transposi
 from minimax.symmetry_minimax import minimax_symmetry_search
 from minimax.chains_minimax import minimax_chains_search
 from minimax.template_minimax import minimax_naive_search
-from MARL.task3.dotsandboxes_agent.alphabeta_minimax import minimax_alphabeta_search
+from MARL.task3.dotsandboxes_agent.alphabeta import minimax_alphabeta_search
 
 import pyspiel
 import platform
