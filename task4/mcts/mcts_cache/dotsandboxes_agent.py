@@ -20,13 +20,11 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from open_spiel.python.algorithms import evaluate_bots
-
-from transposition_table import TOptimised_Table
-from chains.chains_strategy import StrategyAdvisor
-from evaluators import eval_maximize_difference
-from alphabeta import minimax_alphabeta_search
+from task3.dotsandboxes_agent.transposition_table import TSymmetric_Table
+import mcts_cache.mcts as mcts
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
+
 
 def get_agent_for_tournament(player_id):
     """Change this function to initialize your agent.
@@ -52,20 +50,15 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.TT = TOptimised_Table()
-        self.SA = None
+        self.cache = TSymmetric_Table()
 
     def restart_at(self, state):
         """Starting a new game in the given state.
 
         :param state: The initial state of the game.
         """
-        params = state.get_game().get_parameters()
-        num_rows = params['num_rows']
-        num_cols = params['num_cols']
-        self.SA = StrategyAdvisor(num_rows, num_cols)
+        pass
 
- 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
@@ -73,13 +66,7 @@ class Agent(pyspiel.Bot):
         :param player_id: The ID of the player that executed an action.
         :param action: The action which the player executed.
         """
-        if self.SA is None: 
-            logger.info("self.SA is None in inform_action")
-            self.restart_at(state)
-
-        if player_id != self.player_id:
-            #FIXME: run heurstic value on state and store in TT ?
-            self.SA.update_action(action)
+        pass
 
     def step(self, state):
         """Returns the selected action in the given state.
@@ -88,41 +75,25 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # maximum tijd 200ms !!! 
+        # FIXME: maximum tijd 200ms. 
         t1 = time.time()
 
-        if self.SA is None: 
-            logger.info("self.SA is None in step")
-            self.restart_at(state)
-
-        max_allowed_depth = 5
-
-        value, best_action = minimax_alphabeta_search(game=state.get_game(),
-                                            state=state.clone(),
-                                            transposition_table=self.TT, 
-                                            strategy_advisor=self.SA,
-                                            maximum_depth=max_allowed_depth,
-                                            value_function=eval_maximize_difference,
-                                            maximizing_player_id=self.player_id)
-
-        self.SA.update_action(best_action)
-
-        print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
-        print(f"the minimax value is : {value}")
-
-        if value > 0 :
-            print(f"In the simulation, Player {self.player_id} wins.")
-        elif value < 0 : 
-            print(f"In the simulation, Player {self.player_id} wins.")
-        else : 
-            print("In the simulation, It's a draw")
-
+        # FIXME: moet ik maximising player hier specifieren? 
+        cloned_state = state.clone()
+        rng = np.random.RandomState(None)
+        evaluator = mcts.RandomRolloutEvaluator(1, rng)
+        bot = mcts.MCTSBot(cloned_state.get_game(),
+                           2,
+                           1000,
+                           evaluator,
+                           random_state=rng,
+                           solve=True,
+                           verbose=False)
+        action = bot.step(cloned_state, self.cache)
         t2 = time.time()
-        print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action.")
-
-        return best_action
-
-
+        print("time step function of mcts agent using cache.")
+        print(t2 - t1)
+        return action
 
 def test_api_calls():
     """This method calls a number of API calls that are required for the
