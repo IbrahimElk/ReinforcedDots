@@ -24,6 +24,7 @@ from open_spiel.python.algorithms import evaluate_bots
 from transposition_table import TOptimised_Table
 from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
+from chains_evaluator import eval_function_chains
 from alphabeta import minimax_alphabeta_search
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
@@ -50,7 +51,6 @@ class Agent(pyspiel.Bot):
         the tournament. Initializing the agent should thus take no more than
         a few seconds.
         """
-        print("VERY NICE")
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
         self.TT = TOptimised_Table()
@@ -97,7 +97,7 @@ class Agent(pyspiel.Bot):
 
         max_allowed_depth = 5
 
-        value, best_action = minimax_alphabeta_search(game=state.get_game(),
+        _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
                                             transposition_table=self.TT, 
                                             strategy_advisor=self.SA,

@@ -15,11 +15,13 @@ class Evaluator(object):
   an evaluation of that state, which should correlate with chances of winning
   the game. It returns the evaluation from all player's perspectives.
   """
-
+  
+  # TODO:
   def evaluate(self, state):
     """Returns evaluation on given state."""
     raise NotImplementedError
-
+  
+  # TODO:
   def prior(self, state):
     """Returns a probability for each legal action in the given state."""
     raise NotImplementedError
@@ -103,6 +105,7 @@ class SearchNode(object):
     self.outcome = None
     self.children = []
 
+  # TODO:
   def uct_value(self, parent_explore_count, uct_c):
     """Returns the UCT value of child."""
     if self.outcome is not None:
@@ -244,26 +247,29 @@ class MCTSBot(pyspiel.Bot):
   def restart_at(self, state):
     pass
 
+  # FIXME: to be used in dots and boxes agent.  
   def step_with_policy(self, state):
     """Returns bot's policy and action at given state."""
     t1 = time.time()
+    
+    # TODO: kind of like the alpha beta search here: 
     root = self.mcts_search(state)
 
     best = root.best_child()
 
-    if self.verbose:
-      seconds = time.time() - t1
-      print("Finished {} sims in {:.3f} secs, {:.1f} sims/s".format(
-          root.explore_count, seconds, root.explore_count / seconds))
-      print("Root:")
-      print(root.to_str(state))
-      print("Children:")
-      print(root.children_str(state))
-      if best.children:
-        chosen_state = state.clone()
-        chosen_state.apply_action(best.action)
-        print("Children of chosen:")
-        print(best.children_str(chosen_state))
+    # if self.verbose:
+    #   seconds = time.time() - t1
+    #   print("Finished {} sims in {:.3f} secs, {:.1f} sims/s".format(
+    #       root.explore_count, seconds, root.explore_count / seconds))
+    #   print("Root:")
+    #   print(root.to_str(state))
+    #   print("Children:")
+    #   print(root.children_str(state))
+    #   if best.children:
+    #     chosen_state = state.clone()
+    #     chosen_state.apply_action(best.action)
+    #     print("Children of chosen:")
+    #     print(best.children_str(chosen_state))
 
     mcts_action = best.action
 
@@ -272,9 +278,11 @@ class MCTSBot(pyspiel.Bot):
 
     return policy, mcts_action
 
+  # FIXME: to be used in dots and boxes agent.
   def step(self, state):
     return self.step_with_policy(state)[1]
-
+  
+  # FIXME: to be used in dots and boxes agent.  
   def _apply_tree_policy(self, root, state):
     """Applies the UCT policy to play the game until reaching a leaf node.
 
@@ -332,6 +340,7 @@ class MCTSBot(pyspiel.Bot):
 
     return visit_path, working_state
 
+  # FIXME: to be used in dots and boxes agent.  
   def mcts_search(self, state):
     """A vanilla Monte-Carlo Tree Search algorithm.
 
