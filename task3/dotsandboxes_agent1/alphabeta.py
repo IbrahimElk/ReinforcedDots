@@ -18,8 +18,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         return state.player_return(maximizing_player_id)
 
     if depth <= 0:
-        heuristic = value_function(state, maximizing_player_id)
-        return heuristic
+        return value_function(state, maximizing_player_id)
 
     val = cache.get(state)
     if val:
@@ -121,6 +120,7 @@ def minimax_alphabeta_search(game,
                         cache=transposition_table,
                         SA=child_SA.clone())
         
+        # print(child_value)
         if child_value > value:
             value = child_value
             best_action = action  

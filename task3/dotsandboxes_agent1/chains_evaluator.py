@@ -230,9 +230,9 @@ def eval_function_chains(state,maximizing_player_id):
             heuristic += 1
 
     if box_won >= 5:
-        heuristic = np.inf
+        heuristic = 9999
     elif box_lost >= 5:
-        heuristic = -np.inf
+        heuristic = -9999
 
     if p == maximizing_player_id:
         return heuristic
