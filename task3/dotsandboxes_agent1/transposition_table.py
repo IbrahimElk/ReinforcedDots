@@ -1,6 +1,12 @@
-import symmetry.symmetries as s
+import os
+import sys
 
-class TNaive_Table:
+package_directory = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_directory)
+
+import symmetries as s
+
+class Transposition_Table:
     def __init__(self):
         self.cache = {}
         self.hits = 0
@@ -36,7 +42,7 @@ class TNaive_Table:
     def get_symmhits(self):
         return self.symmhits
     
-class TEmpty_Table(TNaive_Table):
+class TEmpty_Table(Transposition_Table):
     def get(self, state):
         self.misses += 1
         return None
@@ -44,7 +50,7 @@ class TEmpty_Table(TNaive_Table):
     def set(self, state, value):
         return
     
-class TOptimised_Table(TNaive_Table):
+class TOptimised_Table(Transposition_Table):
     def get(self, state):
         hashed_state = self._hash_state(state)
         params = state.get_game().get_parameters()

@@ -1,11 +1,12 @@
 import os
 import sys
 import math
+
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, parent_dir)
 
 import random as r
-import numpy as np
+# import numpy as np
 from util import CellOrientation, Directions
 
 # type Alias
