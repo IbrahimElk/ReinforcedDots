@@ -22,7 +22,7 @@ sys.path.append(package_directory)
 from open_spiel.python.algorithms import evaluate_bots
 
 from transposition_table import TOptimised_Table
-from chains.chains_strategy import StrategyAdvisor
+from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
 from alphabeta import minimax_alphabeta_search
 
@@ -50,6 +50,7 @@ class Agent(pyspiel.Bot):
         the tournament. Initializing the agent should thus take no more than
         a few seconds.
         """
+        print("VERY NICE")
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
         self.TT = TOptimised_Table()
@@ -64,7 +65,6 @@ class Agent(pyspiel.Bot):
         num_rows = params['num_rows']
         num_cols = params['num_cols']
         self.SA = StrategyAdvisor(num_rows, num_cols)
-
  
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
@@ -107,18 +107,18 @@ class Agent(pyspiel.Bot):
 
         self.SA.update_action(best_action)
 
-        print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
-        print(f"the minimax value is : {value}")
+        # print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
+        # print(f"the minimax value is : {value}")
 
-        if value > 0 :
-            print(f"In the simulation, Player {self.player_id} wins.")
-        elif value < 0 : 
-            print(f"In the simulation, Player {self.player_id} wins.")
-        else : 
-            print("In the simulation, It's a draw")
+        # if value > 0 :
+        #     print(f"In the simulation, Player {self.player_id} wins.")
+        # elif value < 0 : 
+        #     print(f"In the simulation, Player {self.player_id} wins.")
+        # else : 
+        #     print("In the simulation, It's a draw")
 
         t2 = time.time()
-        print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action.")
+        # print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action.")
 
         return best_action
 

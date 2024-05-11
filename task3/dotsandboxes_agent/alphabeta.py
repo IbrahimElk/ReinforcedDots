@@ -7,9 +7,9 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from transposition_table import TOptimised_Table
-from chains.chains_strategy import StrategyAdvisor
+from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
-from chains import eval_function_chains
+from chains_evaluator import eval_function_chains
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TOptimised_Table, SA:StrategyAdvisor):

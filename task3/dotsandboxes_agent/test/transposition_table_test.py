@@ -10,9 +10,9 @@ sys.path.insert(0, parent_dir)
 
 import transposition_table as T
 
-class TestTNaive_Table(unittest.TestCase):
+class TestTransposition_Table(unittest.TestCase):
     def test_get_and_set(self):
-        table = T.TNaive_Table()
+        table = T.Transposition_Table()
 
         # seed = None
         # if seed:
@@ -44,7 +44,7 @@ class TestTNaive_Table(unittest.TestCase):
         self.assertIsNone(table.get(state2))
 
     def test_cache_hits_and_misses(self):
-        table = T.TNaive_Table()
+        table = T.Transposition_Table()
  
         # seed = None
         # if seed:
