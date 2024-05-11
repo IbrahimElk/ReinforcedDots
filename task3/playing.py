@@ -31,8 +31,8 @@ def training(player0:str, player1:str):
     rng = np.random.RandomState(seed)
     games_list = pyspiel.registered_names()
     assert "dots_and_boxes" in games_list
-    num_rows = 7
-    num_cols = 7
+    num_rows = 5
+    num_cols = 5
     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))

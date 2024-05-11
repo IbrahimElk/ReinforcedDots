@@ -7,8 +7,9 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from transposition_table import TOptimised_Table
-from chains.chains_strategy import StrategyAdvisor
+from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
+from chains_evaluator import eval_function_chains
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, cache:TOptimised_Table, SA:StrategyAdvisor):
@@ -17,8 +18,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         return state.player_return(maximizing_player_id)
 
     if depth <= 0:
-        heuristic = value_function(state, maximizing_player_id)
-        return heuristic
+        return value_function(state, maximizing_player_id)
 
     val = cache.get(state)
     if val:
@@ -120,6 +120,7 @@ def minimax_alphabeta_search(game,
                         cache=transposition_table,
                         SA=child_SA.clone())
         
+        # print(child_value)
         if child_value > value:
             value = child_value
             best_action = action  
@@ -144,6 +145,7 @@ def main():
                                         transposition_table=TT, 
                                         strategy_advisor=SA,
                                         maximum_depth=max_allowed_depth,
+                                        # TODO: can be changed to eval_maximize_difference
                                         value_function=eval_maximize_difference,
                                         state=state.clone())
 

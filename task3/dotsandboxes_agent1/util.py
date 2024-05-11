@@ -1,5 +1,14 @@
-import numpy as np
+from enum import Enum
 
+class CellOrientation(Enum):  
+    HORIZONTAL = 1
+    VERTICAL = 2
+
+class Directions(Enum):  
+    UP = 1
+    DOWN = 2
+    RIGHT = 3
+    LEFT = 4
 
 def vectors_to_dbn(num_rows, num_cols, h_, v_):
     """

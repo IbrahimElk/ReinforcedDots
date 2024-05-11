@@ -1,5 +1,5 @@
 import numpy as np
-import symmetry.util as s
+import util as s
 
 
 # There are a number of trivial symmetries in Dots-And-Boxes
