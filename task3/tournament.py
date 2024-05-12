@@ -61,8 +61,6 @@ def play_match(game, agent1, agent2, seed=1234, rounds=100):
     """
     rng = np.random.RandomState(seed)
     results = []
-    aggr_return_p1 = 0
-    aggr_return_p2 = 0
     for _ in tqdm(range(rounds)):
         # Alternate between the two agents as p1 and p2
         for (p1, p2) in [(agent1, agent2), (agent2, agent1)]:
@@ -85,9 +83,7 @@ def play_match(game, agent1, agent2, seed=1234, rounds=100):
                     "return_p2": returns[1],
                     "error": error
                 })
-                aggr_return_p1 += returns[0]
-                aggr_return_p2 += returns[1]
-    return results, aggr_return_p1, aggr_return_p2
+    return results
 
 
 def play_tournament(game, agents, seed=1234, rounds=100):
@@ -117,7 +113,7 @@ def play_tournament(game, agents, seed=1234, rounds=100):
 @click.argument('agent2_id', type=str)
 @click.argument('agent2_dir', type=click.Path(exists=True))
 @click.argument('output', type=click.Path(exists=False))
-@click.option('--rounds', default=100, help='Number of rounds to play.')
+@click.option('--rounds', default=10, help='Number of rounds to play.')
 @click.option('--num_rows', default=7, help='Number of rows.')
 @click.option('--num_cols', default=7, help='Number of cols.')
 @click.option('--seed', default=1234, help='Random seed')
@@ -137,9 +133,7 @@ def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, num_rows, 
     agent2 = load_agent_from_dir(agent2_id, agent2_dir)
     # Play the tournament
     logger.info("Playing {} matches between {} and {}".format(rounds, agent1_id,  agent2_id))
-    results, p1, p2 = play_match(game, agent1, agent2, seed, rounds)
-    print(p1)
-    print(p2)
+    results = play_match(game, agent1, agent2, seed, rounds)
     # Process the results
     logger.info("Processing the results")
     results = pd.DataFrame(results)
@@ -149,11 +143,3 @@ def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, num_rows, 
 
 if __name__ == '__main__':
     sys.exit(cli())
-
-# 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [30:28<00:00, 18.29s/it]
-# # print(p1) dotsandboxes_agent1
-## 30.0
-# # print(p2) dotsandboxes_agent2
-# -30.0
-# INFO:be.kuleuven.cs.dtai.dotsandboxes.tournament:Processing the results
-# INFO:be.kuleuven.cs.dtai.dotsandboxes.tournament:Done. Results saved to report/tournament_runs/1/nice.csv
