@@ -17,15 +17,16 @@ import numpy as np
 import pyspiel
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(package_directory)
+path = os.path.join(package_directory, '../')
+sys.path.append(path)
 
 from open_spiel.python.algorithms import evaluate_bots
 
-from transposition_table import TOptimised_Table
-from chains_strategy import StrategyAdvisor
-from evaluators import eval_maximize_difference
-from chains_evaluator import eval_function_chains
-from alphabeta import minimax_alphabeta_search
+from source.transposition_table import TOptimised_Table
+from source.chains_strategy import StrategyAdvisor
+from source.evaluators import eval_maximize_difference
+from source.alphabeta import minimax_alphabeta_search
+
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
 
@@ -95,14 +96,14 @@ class Agent(pyspiel.Bot):
             logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 5
+        max_allowed_depth = 20
 
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
                                             transposition_table=self.TT, 
                                             strategy_advisor=self.SA,
                                             maximum_depth=max_allowed_depth,
-                                            value_function=eval_function_chains,
+                                            value_function=eval_maximize_difference,
                                             maximizing_player_id=self.player_id)
 
         self.SA.update_action(best_action)
@@ -118,7 +119,7 @@ class Agent(pyspiel.Bot):
         #     print("In the simulation, It's a draw")
 
         t2 = time.time()
-        # print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action.")
+        print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action with eval_maximize_difference")
 
         return best_action
 
