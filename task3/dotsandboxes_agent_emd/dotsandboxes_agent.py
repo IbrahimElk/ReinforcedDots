@@ -96,7 +96,7 @@ class Agent(pyspiel.Bot):
             logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 5
+        max_allowed_depth = 20
 
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),

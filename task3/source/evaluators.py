@@ -1,5 +1,5 @@
 import numpy as np
-
+import time 
 """
 Chains are sequences of one or more capturable boxes ("corridors").
 
@@ -74,6 +74,8 @@ def eval_maximize_difference(state, maximizing_player_id):
     return (points_max_player - points_min_player)
 
 
+
+
 def eval_function_chains(state, maximizing_player_id):
     """
     Calculate the heuristic value of a state.
@@ -91,56 +93,16 @@ def eval_function_chains(state, maximizing_player_id):
     num_rows = state.get_game().get_parameters()['num_rows']
     num_cols = state.get_game().get_parameters()['num_cols']
 
-    current_player = state.current_player()
-    
-    boxes = box_state_for_pvector(pvector_for_tensor(game_state_tensor(state)), num_rows, num_cols)
+    tensor_data = game_state_tensor(state)
+    boxes = box_state_for_pvector(pvector_for_tensor(tensor_data), num_rows, num_cols)
     
     for box in boxes:
-        # current_player == 0, dan betekent het dat deze agent als eerste heeft gestart. 
-        # current_player == 1, dan betekent het dat deze agent als tweede heeft gestart.
-
-        # maximizing_player_id, duidt aan of onze agent dan als eerste heeft gestart of niet. 
-
-        # als current_player == maximizing_player_id 
-        # case 1: 
-        #      current_player == 0 en maximising_player_id == 0
-        #      dus onze agent als eerste heeft gestart. 
-    
-        #      current_player == 1 en maximising_player_id == 1
-        #      dus onze agent als tweede heeft gestart 
-    
-        #      box == 1, betekent dat de eerste agent deze box heeft gecapteert. 
-        #      dus afhankelijk of wij de eeerste agent zijn of niet, kan dat voordelig zijn voor ons. 
-        #      dit is niet in rekening genomen in de volgende if statement. 
-
-        # if current_player == maximizing_player_id: (als dus current_player , onze agent is.)
-        #     if box == 1: (dit klopt niet, want wij kunnen ook de agent zijn die als tweede starten, dus box == 2. )
-        #         box_won += 1
-        #         heuristic += 1
-        #     elif box == 2:
-        #         box_lost += 1
-        #         heuristic -= 1
-        # else:
-        #     if box == 1:
-        #         box_lost += 1
-        #         heuristic -= 1
-        #     elif box == 2:
-        #         box_won += 1
-        #         heuristic += 1
-
-        # als de box die gecapteerd werd , door ons werd gedaan: 
-        # box == 1, de agent met eerste zet heeft deze box gecapteert. 
-        # maximising_plyer_id == 0, wij zijn de agent met de eerste zet. 
         if box == maximizing_player_id + 1: 
             box_won += 1
             heuristic += 1
         elif box != 0:
             box_lost += 1
             heuristic -= 1
-
-        # TODO: 
-        # das dan eig niet zo verschillend van eig gwn de difference te nemen van de boxes van beide spelers? 
-        # gwn dan op iterative manier? 
 
     # ------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------
@@ -167,45 +129,55 @@ def eval_function_chains(state, maximizing_player_id):
 
     # ------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------
+    
+    # t1 = time.time()
+    # FIXME: SAVE TIME BY HOLDING THE DATATYPE OF CHAINS OF PREVIOUS ITERATION!!
+    count = count_chains(state)
+    # t2 = time.time()
+
+    # FIXME:
+    # Mss een beter idee is om die eval functie direct te gebruiken bij het selecteren van acties bij StrategyAdvisor. 
+    # Hierdoor kun je direct een actie kiezen die dus de long chain rule respecteert. 
+    # en kan een hoop rekenkracht bespaard worden en is het wss effectiever. 
+    # ipv side1 maar 1 actie te returnen. 
+    # returnt er zo'n 3 of 5 tal die de long chain rule respecteert. 
+    # analoog met state.legal_actions()
+    # return niet alle acties, maar enkel degene die de long chain rule zullen respecteren. 
+
+    # TODO:
+    # stel tis tijd efficient, is het beter ? run tournament tussen dit en normale. 
+    # indien wel, dan zorg voor efficietie. 
+    # 1) probeer StrategyAvisor.find_all_chains(), mss sneller ?
+    # 2) data type bouwen die chains opslaat zodat je niet elke keer moet berekenen.
+
     if num_rows % 2 != 0 or num_cols % 2 != 0:
-        if count_chains(state) % 2 == 0 and maximizing_player_id == 0: # als de max speler de eerste speler was.
-                heuristic += 1
+        if count % 2 == 0 and maximizing_player_id == 0: # als de max speler de eerste speler was.
+                heuristic *= 2
                 return heuristic
-        elif count_chains(state) % 2 == 0 and maximizing_player_id == 1:
-                heuristic -= 1
+        elif count % 2 == 0 and maximizing_player_id == 1:
+                heuristic /= 2
                 return heuristic
-        elif count_chains(state) % 2 != 0 and maximizing_player_id == 1: 
-                heuristic += 1
+        elif count % 2 != 0 and maximizing_player_id == 1: 
+                heuristic *= 2
                 return heuristic
-        elif count_chains(state) % 2 != 0 and maximizing_player_id == 0: 
-                heuristic -= 1
+        elif count % 2 != 0 and maximizing_player_id == 0: 
+                heuristic /= 2
                 return heuristic
- 
+    
     elif num_rows % 2 == 0 and num_cols % 2 == 0:        
-        if count_chains(state) % 2 != 0 and maximizing_player_id == 0: 
-                heuristic += 1
+        if count % 2 != 0 and maximizing_player_id == 0: 
+                heuristic *= 2
                 return heuristic
-        elif count_chains(state) % 2 != 0 and maximizing_player_id == 1: 
-                heuristic -= 1
+        elif count % 2 != 0 and maximizing_player_id == 1: 
+                heuristic /= 2
                 return heuristic
-        elif count_chains(state) % 2 == 0 and maximizing_player_id == 0: 
-                heuristic -= 1
+        elif count % 2 == 0 and maximizing_player_id == 0: 
+                heuristic /= 2
                 return heuristic
-        elif count_chains(state) % 2 == 0 and maximizing_player_id == 1:
-                heuristic += 1
+        elif count % 2 == 0 and maximizing_player_id == 1:
+                heuristic *= 2
                 return heuristic
 
-    # if box_won >= 5:
-    #     heuristic = np.inf
-    # elif box_lost >= 5:
-    #     heuristic = -np.inf
-
-    #FIXME: kdenk dat ge altijd de result van volgens de maximizing player id teruggeven. 
-    # (want de min player zal dan de min() nemen, en de max zal dan de max() nemen van die value berekent volgens de max player)  
-    # if p == maximizing_player_id:
-    #     return heuristic
-    # else:
-    #     return -1*heuristic
     return heuristic
 def count_chains(state):
     """
@@ -290,7 +262,7 @@ def add_chain(state, chain_list, box_num):
 def game_state_tensor(state):
     # TODO: wrm 0 ?
     # 0 of 1 heeft geen effect, observation_tensor(0) == observation_tensor(), denk ik, als ik zo kijk naar de c++ code.
-    state_info = state.observation_tensor(0)
+    state_info = state.observation_tensor()
     num_rows = state.get_game().get_parameters()['num_rows']
     num_cols = state.get_game().get_parameters()['num_cols']
     num_dots= ((1 + num_rows) * (1 + num_cols))
@@ -299,7 +271,6 @@ def game_state_tensor(state):
     state_matrix = np_state_info.reshape(3, num_dots, 3)
     
     return state_matrix
-
 
 def pvector_for_tensor(tensor):
     p = np.zeros(len(tensor[0]))

@@ -6,12 +6,15 @@ import numpy as np
 package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
-from transposition_table import TOptimised_Table
+from transposition_table import TOptimised_Table, Transposition_Table_Chains
 from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
 
 def _alpha_beta(state, depth, alpha, beta, value_function,
-                maximizing_player_id, cache:TOptimised_Table, SA:StrategyAdvisor):
+                maximizing_player_id, 
+                cache:TOptimised_Table,
+                cache_chains:Transposition_Table_Chains, 
+                SA:StrategyAdvisor):
     
     if state.is_terminal():
         return state.player_return(maximizing_player_id)
@@ -23,7 +26,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
     if val:
         return val
 
-    possible_actions = SA.get_available_action(state)
+    possible_actions = SA.get_available_action(state, cache_chains, maximizing_player_id)
 
     player = state.current_player()
     if player == maximizing_player_id:
@@ -36,7 +39,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
             child_SA.update_action(action)
 
             child_value = _alpha_beta(child_state, depth - 1, alpha, beta,
-                                        value_function, maximizing_player_id, cache, child_SA)
+                                        value_function, maximizing_player_id, cache, cache_chains, child_SA)
             if child_value > value:
                 value = child_value
             alpha = max(alpha, value)
@@ -57,7 +60,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
             child_SA.update_action(action)
 
             child_value  = _alpha_beta(child_state, depth - 1, alpha, beta,
-                                        value_function, maximizing_player_id, cache, child_SA)            
+                                        value_function, maximizing_player_id, cache, cache_chains, child_SA)            
             if child_value < value:
                 value = child_value
             beta = min(beta, value)
@@ -70,6 +73,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
 
 def minimax_alphabeta_search(game,
                             transposition_table:TOptimised_Table,
+                            transposition_table_chains:Transposition_Table_Chains,
                             strategy_advisor:StrategyAdvisor,
                             state=None,
                             value_function=None,
@@ -99,11 +103,21 @@ def minimax_alphabeta_search(game,
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
     
-    possible_actions = strategy_advisor.get_available_action(state)
+    print("intresting")
+    print(strategy_advisor.chains)
+    
+    possible_actions = strategy_advisor.get_available_action(state, transposition_table_chains, maximizing_player_id)
+    
+    print("possible_actions")
+    print(possible_actions)
 
     value = -float("inf")
     for action in possible_actions:
         child_state = state.clone()
+        
+        print("strategy_advisor")
+        print(strategy_advisor.chains)
+        
         child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
@@ -117,6 +131,7 @@ def minimax_alphabeta_search(game,
                         value_function=value_function,
                         maximizing_player_id=maximizing_player_id,
                         cache=transposition_table,
+                        cache_chains = transposition_table_chains,
                         SA=child_SA.clone())
         
         # print(child_value)
@@ -127,21 +142,25 @@ def minimax_alphabeta_search(game,
     return value, best_action
 
 def main():
-    num_rows = 7
-    num_cols = 7
+    num_rows = 4
+    num_cols = 4
     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
     state = game.new_initial_state()
     SA = StrategyAdvisor(num_rows, num_cols)
+    print(SA.chains)
     max_allowed_depth = 50
 
     maximizing_player_id = state.current_player()
 
     TT = TOptimised_Table()
+    TTC = Transposition_Table_Chains()
+
     value, best_action = minimax_alphabeta_search(game=game,
                                         transposition_table=TT, 
+                                        transposition_table_chains=TTC,
                                         strategy_advisor=SA,
                                         maximum_depth=max_allowed_depth,
                                         # TODO: can be changed to eval_chain
