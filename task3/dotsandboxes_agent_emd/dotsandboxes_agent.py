@@ -22,7 +22,7 @@ sys.path.append(path)
 
 from open_spiel.python.algorithms import evaluate_bots
 
-from source.transposition_table import TOptimised_Table
+from source.transposition_table import TOptimised_Table, Transposition_Table_Chains
 from source.chains_strategy import StrategyAdvisor
 from source.evaluators import eval_maximize_difference
 from source.alphabeta import minimax_alphabeta_search
@@ -55,6 +55,8 @@ class Agent(pyspiel.Bot):
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
         self.TT = TOptimised_Table()
+        self.TTC = Transposition_Table_Chains()
+
         self.SA = None
 
     def restart_at(self, state):
@@ -97,13 +99,16 @@ class Agent(pyspiel.Bot):
             self.restart_at(state)
 
         max_allowed_depth = 20
-
+        
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
-                                            transposition_table=self.TT, 
+                                            transposition_table=self.TT,
+                                            transposition_table_chains=self.TTC,
+ 
                                             strategy_advisor=self.SA,
                                             maximum_depth=max_allowed_depth,
                                             value_function=eval_maximize_difference,
+
                                             maximizing_player_id=self.player_id)
 
         self.SA.update_action(best_action)
