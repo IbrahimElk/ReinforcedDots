@@ -20,7 +20,7 @@ P4 = os.path.dirname(P3)
 
 sys.path.append(P4)
 
-from task3.dotsandboxes_agent.dotsandboxes_agent import get_agent_for_tournament
+from task3.dotsandboxes_agent_emd.dotsandboxes_agent import get_agent_for_tournament
 from open_spiel.python.bots import human
 from open_spiel.python.bots import uniform_random
 import pyspiel
