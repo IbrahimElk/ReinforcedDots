@@ -103,3 +103,31 @@ class TOptimised_Table(Transposition_Table):
         else:
             self.misses += 1
             return None
+        
+
+
+class Transposition_Table_Chains:
+    def __init__(self):
+        self.cache = {}
+        self.hits = 0
+        self.misses = 0
+
+    def get(self, hashed_state):
+        if hashed_state in self.cache:
+            self.hits += 1
+            return self.cache[hashed_state]
+        else:
+            self.misses += 1
+            return None
+
+    def set(self, hashed_state, value):
+        self.cache[hashed_state] = value
+    
+    def get_hits(self):
+        return self.hits
+    
+    def get_misses(self):
+        return self.misses
+    
+    def get_cache(self) -> dict:
+        return self.cache.copy()

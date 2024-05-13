@@ -8,7 +8,9 @@ sys.path.append(package_directory)
 from open_spiel.python.bots import human
 from open_spiel.python.bots import uniform_random
 
-from dotsandboxes_agent.dotsandboxes_agent import get_agent_for_tournament
+from dotsandboxes_agent_ec.dotsandboxes_agent import get_agent_for_tournament
+from dotsandboxes_agent_emd.dotsandboxes_agent import get_agent_for_tournament
+
 # from baselines.firstopen import get_agent_for_tournament
 # from baselines.random import get_agent_for_tournament
 
@@ -62,8 +64,9 @@ def training(player0:str, player1:str):
 if __name__ == "__main__":
     p1 = "random"
     p2 = "minimax"
+    # p3 = "minimax2"
     #  p = "random"
-    training(p1,p2)
+    training(p2,p1)
 
     # if current_player == 1 dan das P2 oftewel p1 = minimax. 
     # if current_player == 0 dan das P1 oftewel
