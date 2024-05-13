@@ -20,7 +20,8 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 from open_spiel.python.algorithms import evaluate_bots
-from task3.dotsandboxes_agent.transposition_table import TSymmetric_Table
+from task3.source.transposition_table import TOptimised_Table, Transposition_Table_Chains
+from task3.source.chains_strategy import StrategyAdvisor
 import mcts_cache.mcts as mcts
 
 logger = logging.getLogger('be.kuleuven.cs.dtai.dotsandboxes')
@@ -50,14 +51,20 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.cache = TSymmetric_Table()
+        self.cache = TOptimised_Table()
+        self.cache_chains = Transposition_Table_Chains()
+
+        self.SA = None
 
     def restart_at(self, state):
         """Starting a new game in the given state.
 
         :param state: The initial state of the game.
         """
-        pass
+        params = state.get_game().get_parameters()
+        num_rows = params['num_rows']
+        num_cols = params['num_cols']
+        self.SA = StrategyAdvisor(num_rows, num_cols)
 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
@@ -66,7 +73,13 @@ class Agent(pyspiel.Bot):
         :param player_id: The ID of the player that executed an action.
         :param action: The action which the player executed.
         """
-        pass
+        if self.SA is None:
+            logger.info("self.SA is None in inform_action")
+            self.restart_at(state)
+        
+        if player_id != self.player_id:
+            #FIXME: run heurstic value on state and store in TT ?
+            self.SA.update_action(action)
 
     def step(self, state):
         """Returns the selected action in the given state.
@@ -77,6 +90,10 @@ class Agent(pyspiel.Bot):
         """
         # FIXME: maximum tijd 200ms. 
         t1 = time.time()
+
+        if self.SA is None: 
+            logger.info("self.SA is None in step")
+            self.restart_at(state)
 
         # FIXME: moet ik maximising player hier specifieren? 
         cloned_state = state.clone()
@@ -89,10 +106,9 @@ class Agent(pyspiel.Bot):
                            random_state=rng,
                            solve=True,
                            verbose=False)
-        action = bot.step(cloned_state, self.cache)
+        action = bot.step(cloned_state, self.cache, self.cache_chains, self.SA)
         t2 = time.time()
-        print("time step function of mcts agent using cache.")
-        print(t2 - t1)
+        print(f"Time to infer an action using enhanced mcts (ms): ", {(t2-t1) * 1000})
         return action
 
 def test_api_calls():

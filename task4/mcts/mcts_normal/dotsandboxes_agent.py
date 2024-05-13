@@ -89,8 +89,7 @@ class Agent(pyspiel.Bot):
                            verbose=False)
         action = bot.step(cloned_state)
         t2 = time.time()
-        print("time step function of normal mcts agent.")
-        print(t2 - t1)
+        print(f"Time to infer an action using normal mcts (ms): ", {(t2-t1) * 1000})
         return action
 
 def test_api_calls():

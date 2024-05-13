@@ -60,8 +60,10 @@ class RandomRolloutEvaluator(Evaluator):
   def prior(self, state):
     """Returns equal probability for all actions."""
     if state.is_chance_node():
+      print("CHANCE NODE: ", state.chance_outcomes())
       return state.chance_outcomes()
     else:
+      print("NOT A CHANCE NODE")
       legal_actions = state.legal_actions(state.current_player())
       return [(action, 1.0 / len(legal_actions)) for action in legal_actions]
 
@@ -257,19 +259,19 @@ class MCTSBot(pyspiel.Bot):
 
     best = root.best_child()
 
-    # if self.verbose:
-    #   seconds = time.time() - t1
-    #   print("Finished {} sims in {:.3f} secs, {:.1f} sims/s".format(
-    #       root.explore_count, seconds, root.explore_count / seconds))
-    #   print("Root:")
-    #   print(root.to_str(state))
-    #   print("Children:")
-    #   print(root.children_str(state))
-    #   if best.children:
-    #     chosen_state = state.clone()
-    #     chosen_state.apply_action(best.action)
-    #     print("Children of chosen:")
-    #     print(best.children_str(chosen_state))
+    if self.verbose:
+       seconds = time.time() - t1
+       print("Finished {} sims in {:.3f} secs, {:.1f} sims/s".format(
+           root.explore_count, seconds, root.explore_count / seconds))
+       print("Root:")
+       print(root.to_str(state))
+       print("Children:")
+       print(root.children_str(state))
+       if best.children:
+         chosen_state = state.clone()
+         chosen_state.apply_action(best.action)
+         print("Children of chosen:")
+         print(best.children_str(chosen_state))
 
     mcts_action = best.action
 

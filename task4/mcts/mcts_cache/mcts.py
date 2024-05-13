@@ -16,11 +16,14 @@
 
 import math
 import time
+import logging
 
 import numpy as np
 
 import pyspiel
 
+from task3.source.chains_strategy import StrategyAdvisor
+from task3.source.transposition_table import TOptimised_Table, Transposition_Table_Chains
 
 class Evaluator(object):
   """Abstract class representing an evaluation function for a game.
@@ -69,13 +72,15 @@ class RandomRolloutEvaluator(Evaluator):
 
     return result / self.n_rollouts
 
-  def prior(self, state):
+  def prior(self, state, SA:StrategyAdvisor, cache_chains:Transposition_Table_Chains):
     """Returns equal probability for all actions."""
+    #FIXME: kan hier deze if else weggelaten worden? gewoon altijd de optimised actions met equal probs teruggeven
     if state.is_chance_node():
+      logging.info("chance node")
       return state.chance_outcomes()
     else:
-      legal_actions = state.legal_actions(state.current_player())
-      return [(action, 1.0 / len(legal_actions)) for action in legal_actions]
+      optimised_actions = SA.get_available_action(state, cache_chains, state.current_player())
+      return [(action, 1.0 / len(optimised_actions)) for action in optimised_actions]
 
 
 class SearchNode(object):
@@ -258,10 +263,10 @@ class MCTSBot(pyspiel.Bot):
   def restart_at(self, state):
     pass
 
-  def step_with_policy(self, state, cache):
+  def step_with_policy(self, state, cache, cache_chains, SA):
     """Returns bot's policy and action at given state."""
     t1 = time.time()
-    root = self.mcts_search(state, cache)
+    root = self.mcts_search(state, cache, cache_chains, SA)
 
     best = root.best_child()
 
@@ -286,10 +291,10 @@ class MCTSBot(pyspiel.Bot):
 
     return policy, mcts_action
 
-  def step(self, state, cache):
-    return self.step_with_policy(state, cache)[1]
+  def step(self, state, cache, cache_chains, SA):
+    return self.step_with_policy(state, cache, cache_chains, SA)[1]
 
-  def _apply_tree_policy(self, root, state):
+  def _apply_tree_policy(self, root, state, cache_chains, SA):
     """Applies the UCT policy to play the game until reaching a leaf node.
 
     A leaf node is defined as a node that is terminal or has not been evaluated
@@ -312,7 +317,7 @@ class MCTSBot(pyspiel.Bot):
                working_state.is_chance_node() and self.dont_return_chance_node):
       if not current_node.children:
         # For a new node, initialize its state, then choose a child as normal.
-        legal_actions = self.evaluator.prior(working_state)
+        legal_actions = self.evaluator.prior(working_state, SA, cache_chains)
         if current_node is root and self._dirichlet_noise:
           epsilon, alpha = self._dirichlet_noise
           noise = self._random_state.dirichlet([alpha] * len(legal_actions))
@@ -335,18 +340,20 @@ class MCTSBot(pyspiel.Bot):
             c for c in current_node.children if c.action == action)
       else:
         # Otherwise choose node with largest UCT value
+        #logging.info("in the else statement")
         chosen_child = max(
             current_node.children,
             key=lambda c: self._child_selection_fn(  # pylint: disable=g-long-lambda
                 c, current_node.explore_count, self.uct_c))
 
       working_state.apply_action(chosen_child.action)
+      SA.update_action(chosen_child.action)
       current_node = chosen_child
       visit_path.append(current_node)
 
     return visit_path, working_state
 
-  def mcts_search(self, state, cache):
+  def mcts_search(self, state, cache, cache_chains, SA):
     """A vanilla Monte-Carlo Tree Search algorithm.
 
     This algorithm searches the game tree from the given state.
@@ -396,17 +403,9 @@ class MCTSBot(pyspiel.Bot):
       The most visited move from the root node.
     """
     root = SearchNode(None, state.current_player(), 1)
-    val = None
-    action = None
-    symm1 = cache.get_symmhits()
-    data = cache.get(state)
-    symm2 = cache.get_symmhits()
-    if (data != None):
-        val , action = data
-        if (symm1 == symm2):
-          return action
+    val = cache.get(state)
     for _ in range(self.max_simulations):
-      visit_path, working_state = self._apply_tree_policy(root, state)
+      visit_path, working_state = self._apply_tree_policy(root, state, cache_chains, SA)
       if working_state.is_terminal():
         returns = working_state.returns()
         visit_path[-1].outcome = returns
@@ -459,6 +458,6 @@ class MCTSBot(pyspiel.Bot):
       if root.outcome is not None:
         break
     
-    cache.set(state, returns, root)
+    cache.set(state, returns)
 
     return root
