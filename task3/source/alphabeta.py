@@ -35,9 +35,9 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
     if depth <= 0:
         print(f"Depth bound reached:") 
         print(f"{state} on depth {depth}")
-        return value_function(state, maximizing_player_id)
+        return value_function(state, maximizing_player_id, SA)
     
-    val = cache.get(state, SA.p_, state.current_player())
+    val = cache.get(state, state.current_player())
     if val:
         print(f"State was already in cache.")
         print(state)
@@ -74,7 +74,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 break  # beta cut-off
         print(f"END on depth {depth}")
         # transpostion table
-        cache.set(state, SA.p_, state.current_player(), value)
+        cache.set(state, state.current_player(), value)
         return value
     
     else:
@@ -103,7 +103,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
 
         print(f"END on depth {depth}")           
         # transpostion table
-        cache.set(state, SA.p_, state.current_player(), value)
+        cache.set(state, state.current_player(), value)
         return value
 # @profile
 def minimax_alphabeta_search(game,
