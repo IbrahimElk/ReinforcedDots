@@ -54,7 +54,6 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.TT = TOptimised_Table()
         self.TTC = Transposition_Table_Chains()
         self.SA = None
 
@@ -73,6 +72,8 @@ class Agent(pyspiel.Bot):
         num_rows = params['num_rows']
         num_cols = params['num_cols']
         self.SA = StrategyAdvisor(num_rows, num_cols)
+        self.TT = TOptimised_Table(num_rows, num_cols)
+
 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
@@ -81,7 +82,7 @@ class Agent(pyspiel.Bot):
         :param player_id: The ID of the player that executed an action.
         :param action: The action which the player executed.
         """
-        if self.SA is None: 
+        if self.SA is None: # TODO: or self.TT is None  ? 
             logger.info("self.SA is None in inform_action")
             self.restart_at(state)
 
@@ -99,11 +100,11 @@ class Agent(pyspiel.Bot):
         # maximum tijd 200ms !!! 
         t1 = time.time()
 
-        if self.SA is None: 
+        if self.SA is None: # TODO: or self.TT is None  ? 
             logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 5
+        max_allowed_depth = 9
         
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),

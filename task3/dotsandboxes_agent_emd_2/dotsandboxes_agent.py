@@ -54,7 +54,6 @@ class Agent(pyspiel.Bot):
         """
         pyspiel.Bot.__init__(self)
         self.player_id = player_id
-        self.TT = TOptimised_Table()
         self.TTC = Transposition_Table_Chains()
         self.SA = None
 
@@ -71,6 +70,7 @@ class Agent(pyspiel.Bot):
         num_rows = params['num_rows']
         num_cols = params['num_cols']
         self.SA = StrategyAdvisor(num_rows, num_cols)
+        self.TT = TOptimised_Table(num_rows, num_cols)
 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.

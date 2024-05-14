@@ -21,6 +21,7 @@ class StrategyAdvisor :
 
         self.h_ = [[0] * cols for _ in range(rows + 1)]
         self.v_ = [[0] * (cols + 1) for _ in range(rows)]
+        self.p_ = [0, 0]
         self.cells = [[0] * cols for _ in range(rows)]
         self.chains = {"half_open": [], "closed": [], "count": 0 }
 
@@ -28,6 +29,7 @@ class StrategyAdvisor :
         cloned_advisor = StrategyAdvisor(self.num_rows, self.num_cols)
         cloned_advisor.h_ = [row[:] for row in self.h_]
         cloned_advisor.v_ = [row[:] for row in self.v_]
+        cloned_advisor.p_ = [self.p_[0], self.p_[1]]
         cloned_advisor.cells = [row[:] for row in self.cells]
         return cloned_advisor
 
@@ -47,33 +49,43 @@ class StrategyAdvisor :
 
         return orien, row, col
         
-    def update_action(self, action):
+    def update_action(self, action, current_player):
         orien, i, j = self.get_tabular_form(action)
         if orien.value == CellOrientation.HORIZONTAL.value : 
-            self.set_h_edge(i,j)
+            self.set_h_edge(i,j, current_player)
         else : 
-            self.set_v_edge(i,j)         
+            self.set_v_edge(i,j, current_player)         
 
-    def update_edge(self, orien:CellOrientation, i, j):
+    def update_edge(self, orien:CellOrientation, i, j, current_player):
         if orien.value == CellOrientation.HORIZONTAL.value : 
-            self.set_h_edge(i,j)
+            self.set_h_edge(i,j, current_player)
         else : 
-            self.set_v_edge(i,j)
+            self.set_v_edge(i,j, current_player)
 
-    def set_h_edge(self, x, y):
+    def set_h_edge(self, x, y, current_player):
         self.h_[x][y] = 1
         if x > 0:
             self.cells[x - 1][y] += 1
+            if self.cells[x - 1][y] == 4: 
+                self.p_[current_player] += 1
+
         if x < self.num_rows:
             self.cells[x][y] += 1
+            if self.cells[x][y] == 4: 
+                self.p_[current_player] += 1
 
-    def set_v_edge(self, x, y):
+
+    def set_v_edge(self, x, y, current_player):
         self.v_[x][y] = 1
         if y > 0:
             self.cells[x][y - 1] += 1
+            if self.cells[x][y - 1] == 4: 
+                self.p_[current_player] += 1
+
         if y < self.num_cols:
             self.cells[x][y] += 1
-
+            if self.cells[x][y] == 4: 
+                self.p_[current_player] += 1
 
     def action_id(self, orientation_:CellOrientation, row_:int, col_:int):
         """
@@ -166,13 +178,14 @@ class StrategyAdvisor :
 
     def amount_of_boxes_captured(self): 
         """aantal boxes die al 4 edges hebben."""
-        count = 0
-        for i in range(self.num_rows) :
-            for j in range(self.num_cols):
-                if self.cells[i][j] == 4:
-                    count += 1 
-        return count
-
+        # count = 0
+        # for i in range(self.num_rows) :
+        #     for j in range(self.num_cols):
+        #         if self.cells[i][j] == 4:
+        #             count += 1 
+        # return count
+        return sum(self.p_)
+    
     def unsafe3(self):
         amount_of_closed_chains     = len(self.chains["closed"])
         amount_of_half_open_chains  = len(self.chains["half_open"])

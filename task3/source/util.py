@@ -87,7 +87,7 @@ def pvector_for_tensor(tensor):
  
 #     return h
 
-# def h_and_v_vectors_from_tensor(tensor, nrows, ncols):
+# def vectors_to_dbn(num_rows, num_cols, h_, v_):
 #     num_dots = (nrows + 1) * (ncols + 1) 
 #     h = np.zeros(num_dots, dtype=int)
 #     v = np.zeros(num_dots, dtype=int)

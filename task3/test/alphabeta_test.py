@@ -126,26 +126,19 @@ class TestAlphaBeta(unittest.TestCase):
 
         num_rows = 3
         num_cols = 6
-        num_dots = (num_rows + 1) * (num_cols + 1)
         game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
         print("Creating game: {}".format(game_string))
         game = pyspiel.load_game(game_string)
         state = game.new_initial_state()
         SA = StrategyAdvisor(num_rows, num_cols)
-        allowed_depth = 7
+        allowed_depth = 9
 
         exp.example_paper(state)
         ex.example_paper(SA)
 
         obs_tensor = state.observation_tensor()
         obs_tensor = np.array(obs_tensor)
-
-        # {cellstates= (empty, player1, player2), num_cells , part_of_cell(horizontal, vertical, which_player_won) = 3},
-        state_matrix = obs_tensor.reshape(3, (num_rows+1) * (num_cols+1), 3)
-
-        # hashed_state = h_and_v_vectors_from_tensor(state_matrix, num_rows, num_cols)
-        # print(hashed_state)
 
         SA.update_action(6, state.current_player())
         state.apply_action(6)
@@ -171,37 +164,36 @@ class TestAlphaBeta(unittest.TestCase):
         state.apply_action(28)
         SA.update_action(28, state.current_player())
 
-
         maximizing_player_id = state.current_player()
         
         TT = TOptimised_Table(num_rows, num_cols)
         TTC = Transposition_Table_Chains()
-        # value, best_action = minimax_alphabeta_search(game=game,
-        #                                     state=state,
-        #                                     transposition_table=TT, 
-        #                                     transposition_table_chains=TTC,
-        #                                     strategy_advisor=SA,
-        #                                     maximum_depth=allowed_depth,
-        #                                     value_function=eval_maximize_difference)
+        value, best_action = minimax_alphabeta_search(game=game,
+                                            state=state,
+                                            transposition_table=TT, 
+                                            transposition_table_chains=TTC,
+                                            strategy_advisor=SA,
+                                            maximum_depth=allowed_depth,
+                                            value_function=eval_maximize_difference)
 
-        # print("next recommended action: ")
-        # print(best_action)  
+        print("next recommended action: ")
+        print(best_action)  
 
-        # print("the minimax value")
-        # print(value)  
+        print("the minimax value")
+        print(value)  
 
-        # if value > 0 :
-        #     print(f"Player {maximizing_player_id + 1} wins.")
-        # elif value < 0 : 
-        #     print(f"Player {maximizing_player_id} wins.")
-        # else : 
-        #     print("It's a draw")
+        if value > 0 :
+            print(f"Player {maximizing_player_id + 1} wins.")
+        elif value < 0 : 
+            print(f"Player {maximizing_player_id} wins.")
+        else : 
+            print("It's a draw")
     
-        # print("Applying the recommended action to the state")
-        # state.apply_action(best_action, )
-        # print(state)
+        print("Applying the recommended action to the state")
+        state.apply_action(best_action)
+        print(state)
 
-        # self.assertEqual(best_action, SA.action_id(CellOrientation.HORIZONTAL, 1, 5))
+        self.assertEqual(best_action, SA.action_id(CellOrientation.HORIZONTAL, 1, 5))
 
 # NOT HERE, in alpha beta test.
     # def test_which_eval_function_is_best(self):

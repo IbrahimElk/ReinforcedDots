@@ -147,7 +147,7 @@ def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, num_rows, 
     results.sort_stats(pstats.SortKey.TIME)
     results.print_stats()
     # results.dump_stats("results_transposition_table_max_depth_20.prof")
-    results.dump_stats("results_new_vector_to_dbn.prof")
+    results.dump_stats("report/performance/result_emd2_vs_emd3.prof")
 
     logging.basicConfig(level=logging.INFO)
 

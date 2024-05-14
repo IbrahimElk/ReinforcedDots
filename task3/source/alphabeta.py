@@ -24,26 +24,26 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
         print(f"State is Terminal: {state} on depth {depth}")
         return state.player_return(maximizing_player_id)
 
-# terminal OF aantal boxes van ene speler is al meer dan de heflt. 
-# if (board.scores[0] > board.columns * board.rows / 2) {
-#     return 1;
-# }
-# if (board.scores[1] > board.columns * board.rows / 2) {
-#     return -1;
-# }
+    # terminal OF aantal boxes van ene speler is al meer dan de heflt. 
+    # if (board.scores[0] > board.columns * board.rows / 2) {
+    #     return 1;
+    # }
+    # if (board.scores[1] > board.columns * board.rows / 2) {
+    #     return -1;
+    # }
 
     if depth <= 0:
         print(f"Depth bound reached:") 
         print(f"{state} on depth {depth}")
         return value_function(state, maximizing_player_id)
-
-    val = cache.get(state)
+    
+    val = cache.get(state, SA.p_, state.current_player())
     if val:
         print(f"State was already in cache.")
         print(state)
         print(f"cache at depth {depth} utilised")
         return val
-
+    
     possible_actions = SA.get_available_action(state, cache_chains, maximizing_player_id)
     print(f"BEGIN on depth {depth}")
     print(f'possible actions : {possible_actions}')
@@ -70,10 +70,11 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 value = child_value
             alpha = max(alpha, value)
             if alpha >= beta:
+                print(f"beta cut-off")
                 break  # beta cut-off
         print(f"END on depth {depth}")
         # transpostion table
-        cache.set(state, value)
+        cache.set(state, SA.p_, state.current_player(), value)
         return value
     
     else:
@@ -97,11 +98,12 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 value = child_value
             beta = min(beta, value)
             if alpha >= beta:
+                print(f"alpha cut-off")
                 break  # alpha cut-off
 
         print(f"END on depth {depth}")           
         # transpostion table
-        cache.set(state, value)
+        cache.set(state, SA.p_, state.current_player(), value)
         return value
 # @profile
 def minimax_alphabeta_search(game,
@@ -195,7 +197,7 @@ def main():
 
     maximizing_player_id = state.current_player()
 
-    TT = TOptimised_Table()
+    TT = TOptimised_Table(num_rows, num_cols)
     TTC = Transposition_Table_Chains()
 
     value, best_action = minimax_alphabeta_search(game=game,
@@ -233,3 +235,101 @@ if __name__ == "__main__":
     # results.sort_stats(pstats.SortKey.TIME)
     # results.print_stats()
     # results.dump_stats("results.prof")
+
+
+
+# def _alpha_beta(state, depth, alpha, beta, value_function,
+#                 maximizing_player_id, 
+#                 cache:TOptimised_Table,
+#                 cache_chains:Transposition_Table_Chains, 
+#                 SA:StrategyAdvisor):
+    
+#     if state.is_terminal():
+#         print(f"State is Terminal: {state} on depth {depth}")
+#         return state.player_return(maximizing_player_id)
+
+#     # terminal OF aantal boxes van ene speler is al meer dan de heflt. 
+#     # if (board.scores[0] > board.columns * board.rows / 2) {
+#     #     return 1;
+#     # }
+#     # if (board.scores[1] > board.columns * board.rows / 2) {
+#     #     return -1;
+#     # }
+
+#     if depth <= 0:
+#         print(f"Depth bound reached:") 
+#         print(f"{state} on depth {depth}")
+#         return value_function(state, maximizing_player_id)
+
+
+#     # tt_entry = cache.get(state, SA.p_)
+#     # if tt_entry is not None and tt_entry.depth >= depth:
+#     #     if tt_entry.flag == TTEntry.EXACT:
+#     #         return tt_entry.value
+#     #     elif tt_entry.flag == TTEntry.LOWERBOUND:
+#     #         alpha = max(alpha, tt_entry.value)
+#     #     elif tt_entry.flag == TTEntry.UPPERBOUND:
+#     #         beta = min(beta, tt_entry.value)
+        
+#     #     if alpha >= beta:
+#     #         return tt_entry.value
+
+
+#     possible_actions = SA.get_available_action(state, cache_chains, maximizing_player_id)
+#     print(f"BEGIN on depth {depth}")
+#     print(f'possible actions : {possible_actions}')
+
+#     player = state.current_player()
+#     if player == maximizing_player_id:
+#         value = -float("inf")
+#         for action in possible_actions:
+#             child_state = state.clone()
+#             child_SA = SA.clone()
+
+#             child_state.apply_action(action)
+#             child_SA.update_action(action, state.current_player())
+
+#             print("maximum player trying to consider the following action.")
+#             print(f"action: {SA.get_tabular_form(action)}")
+        
+#             child_value = _alpha_beta(child_state, depth - 1, alpha, beta,
+#                                         value_function, maximizing_player_id, cache, cache_chains, child_SA)
+
+#             print(f"value of child of maximum player with action : {child_value} and {SA.get_tabular_form(action)}, action: {action}")
+
+#             if child_value > value:
+#                 value = child_value
+
+#             alpha = max(alpha, value)
+#             if alpha >= beta:
+#                 break  # beta cut-off
+#         print(f"END on depth {depth}")
+#         cache.set(state, SA.p_, value, alpha, beta, depth, cache)
+#         return value
+    
+#     else:
+#         value = float("inf")
+#         for action in possible_actions:
+#             child_state = state.clone()
+#             child_SA = SA.clone()
+
+#             child_state.apply_action(action)
+#             child_SA.update_action(action, state.current_player())
+            
+#             print("minimum player trying to consider the following action.")
+#             print(f"action: {SA.get_tabular_form(action)}")
+        
+#             child_value  = _alpha_beta(child_state, depth - 1, alpha, beta,
+#                                         value_function, maximizing_player_id, cache, cache_chains, child_SA)
+            
+#             print(f"value of child of minimum player with action : {child_value} and {SA.get_tabular_form(action)} and action {action}")
+
+#             if child_value < value:
+#                 value = child_value
+#             beta = min(beta, value)
+#             if alpha >= beta:
+#                 break  # alpha cut-off
+
+#         print(f"END on depth {depth}")
+#         cache.set(state, SA.p_, value, alpha, beta, depth, cache)   
+#         return value
