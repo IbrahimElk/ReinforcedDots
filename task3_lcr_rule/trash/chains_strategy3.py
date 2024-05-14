@@ -446,6 +446,8 @@ class StrategyAdvisor :
         # print('time')
         # print((t2-t1) * 1000)
 
+        # TODO: EERST ordenen volgens radial ding ofzo, pak eerste 5 ofzo, en shuffle.  
+
         actions = state.legal_actions()
         num_to_pick = min(2, len(actions))
         random_selection = r.sample(actions, num_to_pick)
