@@ -7,6 +7,7 @@ sys.path.insert(0, parent_dir)
 
 import random as r
 import numpy as np
+import time as t
 from transposition_table import Transposition_Table_Chains
 from util import CellOrientation, Directions, vectors_to_dbn
 from evaluators import game_state_tensor, pvector_for_tensor, box_state_for_pvector
@@ -20,6 +21,7 @@ class StrategyAdvisor :
 
         self.h_ = [[0] * cols for _ in range(rows + 1)]
         self.v_ = [[0] * (cols + 1) for _ in range(rows)]
+        self.p_ = [0, 0]
         self.cells = [[0] * cols for _ in range(rows)]
         self.chains = {"half_open": [], "closed": [], "count": 0 }
 
@@ -27,6 +29,7 @@ class StrategyAdvisor :
         cloned_advisor = StrategyAdvisor(self.num_rows, self.num_cols)
         cloned_advisor.h_ = [row[:] for row in self.h_]
         cloned_advisor.v_ = [row[:] for row in self.v_]
+        cloned_advisor.p_ = [self.p_[0], self.p_[1]]
         cloned_advisor.cells = [row[:] for row in self.cells]
         return cloned_advisor
 
@@ -46,33 +49,43 @@ class StrategyAdvisor :
 
         return orien, row, col
         
-    def update_action(self, action):
+    def update_action(self, action, current_player):
         orien, i, j = self.get_tabular_form(action)
         if orien.value == CellOrientation.HORIZONTAL.value : 
-            self.set_h_edge(i,j)
+            self.set_h_edge(i,j, current_player)
         else : 
-            self.set_v_edge(i,j)         
+            self.set_v_edge(i,j, current_player)         
 
-    def update_edge(self, orien:CellOrientation, i, j):
+    def update_edge(self, orien:CellOrientation, i, j, current_player):
         if orien.value == CellOrientation.HORIZONTAL.value : 
-            self.set_h_edge(i,j)
+            self.set_h_edge(i,j, current_player)
         else : 
-            self.set_v_edge(i,j)
+            self.set_v_edge(i,j, current_player)
 
-    def set_h_edge(self, x, y):
+    def set_h_edge(self, x, y, current_player):
         self.h_[x][y] = 1
         if x > 0:
             self.cells[x - 1][y] += 1
+            if self.cells[x - 1][y] == 4: 
+                self.p_[current_player] += 1
+
         if x < self.num_rows:
             self.cells[x][y] += 1
+            if self.cells[x][y] == 4: 
+                self.p_[current_player] += 1
 
-    def set_v_edge(self, x, y):
+
+    def set_v_edge(self, x, y, current_player):
         self.v_[x][y] = 1
         if y > 0:
             self.cells[x][y - 1] += 1
+            if self.cells[x][y - 1] == 4: 
+                self.p_[current_player] += 1
+
         if y < self.num_cols:
             self.cells[x][y] += 1
-
+            if self.cells[x][y] == 4: 
+                self.p_[current_player] += 1
 
     def action_id(self, orientation_:CellOrientation, row_:int, col_:int):
         """
@@ -165,13 +178,14 @@ class StrategyAdvisor :
 
     def amount_of_boxes_captured(self): 
         """aantal boxes die al 4 edges hebben."""
-        count = 0
-        for i in range(self.num_rows) :
-            for j in range(self.num_cols):
-                if self.cells[i][j] == 4:
-                    count += 1 
-        return count
-
+        # count = 0
+        # for i in range(self.num_rows) :
+        #     for j in range(self.num_cols):
+        #         if self.cells[i][j] == 4:
+        #             count += 1 
+        # return count
+        return sum(self.p_)
+    
     def unsafe3(self):
         amount_of_closed_chains     = len(self.chains["closed"])
         amount_of_half_open_chains  = len(self.chains["half_open"])
@@ -195,7 +209,7 @@ class StrategyAdvisor :
                     chain_data["chain"],
                     chain_data["directions"])
                 
-                return [dhh_action, fb_action]
+                return [fb_action, dhh_action]
             
             else :
                 chain_data = self.chains["closed"][0]
@@ -219,7 +233,7 @@ class StrategyAdvisor :
                     chain_data["chain"],
                     chain_data["directions"])
                 
-                return [shh_action, fb_action]
+                return [fb_action, shh_action]
             
             else :
                 chain_data = self.chains["half_open"][0]
@@ -362,7 +376,8 @@ class StrategyAdvisor :
     def get_available_action(self, state, 
                              cache_chains:Transposition_Table_Chains,  
                              maximizing_player_id):
-
+        
+        t1 = t.time()
         # self.obtain_chains(cache_chains, state)
         self.find_all_chains()
         # 1) singletons and doubletons
@@ -427,18 +442,22 @@ class StrategyAdvisor :
     
         # FIXME: wat als dat niet lukt?
         # actie vinden die de lcr voldoet, dan gwn state.lagal_actions()
-        return state.legal_actions() 
+        t2 = t.time()
+        # print('time')
+        # print((t2-t1) * 1000)
 
-    # def obtain_chains(self, cache_chains, state): 
-    #     # 0) cache voor de chains. 
-    #     chains_object = cache_chains.get(state.dbn_string())
-    #     if chains_object:
-    #         print("chains_object obtained from cache.")
-    #         self.chains = chains_object
-    #     else : 
-    #         print("chains_object calculated.")
-    #         self.find_all_chains()
-    #         cache_chains.set(state.dbn_string(), self.chains)
+        return state.legal_actions()
+
+    def obtain_chains(self, cache_chains, state): 
+        # 0) cache voor de chains. 
+        chains_object = cache_chains.get(state.dbn_string())
+        if chains_object:
+            print("chains_object obtained from cache.")
+            self.chains = chains_object
+        else : 
+            print("chains_object calculated.")
+            self.find_all_chains()
+            cache_chains.set(state.dbn_string(), self.chains)
 
     # def get_lcr_actions(self, actions, cache_chains, maximizing_player_id):
     #     """

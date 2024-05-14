@@ -20,6 +20,9 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
+import cProfile
+import pstats
+
 import pyspiel
 from open_spiel.python.algorithms.evaluate_bots import evaluate_bots
 
@@ -119,9 +122,8 @@ def play_tournament(game, agents, seed=1234, rounds=100):
 @click.option('--seed', default=1234, help='Random seed')
 def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, num_rows, num_cols, seed):
     """Play a set of games between two agents."""
-    logging.basicConfig(level=logging.INFO)
-
-    # Create the game
+    
+        # Create the game
     dotsandboxes_game_string = (
         "dots_and_boxes(num_rows={},"
         "num_cols={})").format(num_rows, num_cols)
@@ -133,13 +135,21 @@ def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, num_rows, 
     agent2 = load_agent_from_dir(agent2_id, agent2_dir)
     # Play the tournament
     logger.info("Playing {} matches between {} and {}".format(rounds, agent1_id,  agent2_id))
-    results = play_match(game, agent1, agent2, seed, rounds)
+    with cProfile.Profile() as profile: 
+        results = play_match(game, agent1, agent2, seed, rounds)
     # Process the results
     logger.info("Processing the results")
     results = pd.DataFrame(results)
     results.to_csv(output, index=False)
     logger.info("Done. Results saved to {}".format(output))
+    
+    results = pstats.Stats(profile)
+    results.sort_stats(pstats.SortKey.TIME)
+    results.print_stats()
+    # results.dump_stats("results_transposition_table_max_depth_20.prof")
+    results.dump_stats("results_new_vector_to_dbn.prof")
 
+    logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
     sys.exit(cli())

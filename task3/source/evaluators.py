@@ -71,6 +71,14 @@ def eval_maximize_difference(state, maximizing_player_id):
 
     points_max_player = sum(state_matrix[maximizing_player_id+1,:,2])
     points_min_player = sum(state_matrix[2 - maximizing_player_id,:,2])
+
+    print("eval_maximze_difference")
+    print(state)
+    print(f"points_max_player : {points_max_player}")
+    print(f"points_min_player: {points_min_player}")
+    print(f"difference: {points_max_player - points_min_player}")
+    print("end eval fucntie")
+
     return (points_max_player - points_min_player)
 
 

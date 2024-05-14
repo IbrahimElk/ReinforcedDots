@@ -1,20 +1,26 @@
 import os
 import sys
+import numpy as np
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(package_directory)
 
 import symmetries as s
+from memory_profiler import profile
+from util import vectors_to_dbn, dbn_to_vectors
+import pyspiel
 
 class Transposition_Table:
-    def __init__(self):
+    def __init__(self, num_rows, num_cols):
         self.cache = {}
         self.hits = 0
         self.misses = 0
         self.symmhits = 0
+        self.num_rows = num_rows
+        self.num_cols = num_cols
 
-    def get(self, state):
-        hashed_state = self._hash_state(state)
+    def get(self, state:pyspiel.DotsAndBoxesState, players_points:list[int]):
+        hashed_state = self._hash_state(state, players_points)
         if hashed_state in self.cache:
             self.hits += 1
             return self.cache[hashed_state]
@@ -22,13 +28,15 @@ class Transposition_Table:
             self.misses += 1
             return None
 
-    def set(self, state, value):
+    def set(self, state:pyspiel.DotsAndBoxesState, value):
         hashed_state = self._hash_state(state)
         self.cache[hashed_state] = value
 
-    def _hash_state(self, state):
-        hash_hex = state.dbn_string()
-        return hash_hex
+    def _hash_state(self, state:pyspiel.DotsAndBoxesState, players_points:list[int]):
+        hash_string = state.dbn_string()
+        # TODO: test if good idea. 
+        hash_string += ''.join(map(str, players_points))
+        return hash_string
     
     def get_hits(self):
         return self.hits
@@ -43,57 +51,70 @@ class Transposition_Table:
         return self.symmhits
     
 class TEmpty_Table(Transposition_Table):
-    def get(self, state):
+    def get(self, state:pyspiel.DotsAndBoxesState):
         self.misses += 1
         return None
 
     def set(self, state, value):
         return
-    
+
 class TOptimised_Table(Transposition_Table):
-    def get(self, state):
-        hashed_state = self._hash_state(state)
+    def get(self, state:pyspiel.DotsAndBoxesState):
+        dbn = self._hash_state(state)
         params = state.get_game().get_parameters()
         num_rows = params['num_rows']
         num_cols = params['num_cols']
 
-        if hashed_state in self.cache:
+        if dbn in self.cache:
             self.hits += 1
-            return self.cache[hashed_state]
+            return self.cache[dbn]
+
+        h_matrix, v_matrix = dbn_to_vectors(num_rows, num_cols, dbn)
+        horizontal_h_list, horizontal_v_list = np.flipud(h_matrix), np.flipud(v_matrix)
         
-        cache_result = s.check_horizontal(state, num_rows, num_cols)
+        cache_result = vectors_to_dbn(num_rows, num_cols, horizontal_h_list, horizontal_v_list)
         if cache_result in self.cache:
             self.symmhits += 1
             return self.cache[cache_result]
         
-        cache_result = s.check_vertical(state, num_rows, num_cols)
+        vertical_h_list, vertical_v_list = np.fliplr(h_matrix), np.fliplr(v_matrix)
+        cache_result = vectors_to_dbn(num_rows, num_cols, vertical_h_list, vertical_v_list)
+        del vertical_h_list, vertical_v_list
+        
         if cache_result in self.cache:
             self.symmhits += 1
             return self.cache[cache_result]
         
-        cache_result = s.check_hv(state, num_rows, num_cols)
-        if cache_result in self.cache:
-            self.symmhits += 1
-            return self.cache[cache_result]
-        
-        # FIXME : ibr : MSS OVERBODIG!!
-        cache_result = s.check_vh(state, num_rows, num_cols)
+        hv_h_list, hv_v_list = np.fliplr(horizontal_h_list), np.fliplr(horizontal_v_list)
+        cache_result =  vectors_to_dbn(num_rows, num_cols, hv_h_list, hv_v_list)
+        del hv_h_list, hv_v_list
+
         if cache_result in self.cache:
             self.symmhits += 1
             return self.cache[cache_result]
 
         if num_rows == num_cols:
-            cache_result = s.check_diag1(state, num_rows, num_cols)
+
+            rot3_h_list, rot3_v_list = np.rot90(v_matrix, 3), np.rot90(h_matrix, 3)
+            cache_result = vectors_to_dbn(num_rows, num_cols, rot3_h_list, rot3_v_list)
+            del rot3_h_list, rot3_v_list
+
             if cache_result in self.cache:
                 self.symmhits += 1
                 return self.cache[cache_result]
             
-            cache_result = s.check_diag2(state, num_rows, num_cols)
+            rot1_h_list, rot1_v_list = np.rot90(v_matrix, 1), np.rot90(h_matrix, 1)
+            cache_result = vectors_to_dbn(num_rows, num_cols, rot1_h_list, rot1_v_list)
+            del rot1_h_list, rot1_v_list
+
             if cache_result in self.cache:
                 self.symmhits += 1
                 return self.cache[cache_result]
             
-            cache_result = s.check_h_diag1(state, num_rows, num_cols)
+            rotv_h_list, roth_v_list = np.rot90(horizontal_v_list, 3), np.rot90(horizontal_h_list, 3)
+            cache_result = vectors_to_dbn(num_rows, num_cols, rotv_h_list, roth_v_list)
+            del horizontal_v_list, horizontal_h_list, rotv_h_list, roth_v_list
+
             if cache_result in self.cache:
                 self.symmhits += 1
                 return self.cache[cache_result]
@@ -103,7 +124,6 @@ class TOptimised_Table(Transposition_Table):
         else:
             self.misses += 1
             return None
-        
 
 
 class Transposition_Table_Chains:

@@ -2,12 +2,12 @@ import os
 import sys
 import unittest
 import pyspiel
-import chains.pyspiel_examples as ex
+import MARL.task3.test.pyspiel_examples as ex
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.insert(0, parent_dir)
 
-import evaluators as ev
+import source.evaluators as ev
 
 class TestEvaluators(unittest.TestCase):
     def test_eval_function_difference_singleton(self):

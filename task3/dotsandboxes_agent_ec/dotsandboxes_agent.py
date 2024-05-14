@@ -81,7 +81,7 @@ class Agent(pyspiel.Bot):
 
         if player_id != self.player_id:
             #FIXME: run heurstic value on state and store in TT ?
-            self.SA.update_action(action)
+            self.SA.update_action(action, state.current_player())
 
     def step(self, state):
         """Returns the selected action in the given state.
@@ -97,7 +97,7 @@ class Agent(pyspiel.Bot):
             logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 20
+        max_allowed_depth = 5
 
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),

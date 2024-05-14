@@ -22,7 +22,7 @@ sys.path.append(path)
 
 from open_spiel.python.algorithms import evaluate_bots
 
-from source.transposition_table import TOptimised_Table, Transposition_Table_Chains
+from source.transposition_table import TOptimised_Table, Transposition_Table_Chains, Transposition_Table
 from source.chains_strategy import StrategyAdvisor
 from source.evaluators import eval_maximize_difference
 from source.alphabeta import minimax_alphabeta_search
@@ -56,7 +56,6 @@ class Agent(pyspiel.Bot):
         self.player_id = player_id
         self.TT = TOptimised_Table()
         self.TTC = Transposition_Table_Chains()
-
         self.SA = None
 
     def restart_at(self, state):
@@ -64,11 +63,17 @@ class Agent(pyspiel.Bot):
 
         :param state: The initial state of the game.
         """
+        # TODO: may decrease executation time by avoiding swapping memory. 
+        # del self.TT
+        # self.TT = TOptimised_Table()
+        
+        # hier mogelijks de rows en columns field van transposition table veranderen.
+
         params = state.get_game().get_parameters()
         num_rows = params['num_rows']
         num_cols = params['num_cols']
         self.SA = StrategyAdvisor(num_rows, num_cols)
- 
+
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
 
@@ -98,7 +103,7 @@ class Agent(pyspiel.Bot):
             logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 20
+        max_allowed_depth = 5
         
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
@@ -125,6 +130,11 @@ class Agent(pyspiel.Bot):
 
         t2 = time.time()
         print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action with eval_maximize_difference")
+
+        print(f"The transposition table was used as follows: ")
+        print(f"The amount of hits          : {self.TT.get_hits()}")
+        print(f"The amount of misses        : {self.TT.get_misses()}")
+        print(f"The amount of symmetry hits : {self.TT.get_symmhits()}")
 
         return best_action
 

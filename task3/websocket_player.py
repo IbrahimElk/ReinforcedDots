@@ -18,12 +18,33 @@ Created by Wannes Meert
 Copyright (c) 2022 KU Leuven. All rights reserved.
 """
 
+# -------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
+# deze file uitvoeren in een terminal: ./websocket_player.py
+# en gebruik de link van localtunnel
+# en die link vervang daarvan de https met ws 
+# en gebruik die link op de website van de prof. 
+
+# INFO : 
+# commando om 1 keer uit te voeren : npm install -g localtunnel
+# commando om dit file uit te voeren : ./websocket_player.py dotsandboxes_agent 8080  
+
+# bv. 
+# Ibrahim : 
+# website : https://people.cs.kuleuven.be/~wannes.meert/dotsandboxes/dotsandboxes.html
+# temporary link van mijn agent: ws://tender-lies-drum.loca.lt/
+
+# -------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
+
+
 import sys
 import argparse
 import logging
 import asyncio
 import websockets
 import json
+import subprocess
 from collections import defaultdict
 
 import pyspiel
@@ -230,6 +251,16 @@ async def start_server(port):
         await asyncio.Future()  # run forever
 
 
+def start_localtunnel(port):
+    try:
+        # npm install -g localtunnel
+        # When localtunnel is installed globally, just use the lt command to start the tunnel.
+        localtunnel_process = subprocess.Popen(['lt', '--port', str(port)])
+        print("Localtunnel is running, forwarding to port", port)
+        return localtunnel_process
+    except FileNotFoundError:
+        print("Localtunnel not found. Make sure it's installed and available in the PATH.")
+
 def main(argv=None):
     global agentclass
     global agentdir
@@ -245,9 +276,14 @@ def main(argv=None):
 
     agentdir = args.agent1_dir
     agentclass = DotsAndBoxesSocketPlayer
+    
+    # Start Localtunnel
+    localtunnel_process = start_localtunnel(args.port)
+    
     asyncio.run(start_server(args.port))
-
+    
+    # Terminate Localtunnel when the server exits
+    localtunnel_process.terminate()
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -3,12 +3,12 @@ import sys
 import unittest
 import pyspiel
 import random as r
-import chains.pyspiel_examples as ex
+import MARL.task3.test.pyspiel_examples as ex
 
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, parent_dir)
 
-import transposition_table as T
+import source.transposition_table as T 
 
 class TestTransposition_Table(unittest.TestCase):
     def test_get_and_set(self):
@@ -201,58 +201,42 @@ class TestTOptimised_Table(unittest.TestCase):
     def test_symmetries(self):
         table = T.TOptimised_Table()
         
-        # seed = None
-        # if seed:
-        #     r.seed(seed)
+        seed = None
+        if seed:
+            r.seed(seed)
 
-        x = r.randint(4, 4)
+        x = r.randint(4, 20)
 
         num_rows = x
         num_cols = x
         game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
         game1 = pyspiel.load_game(game_string)
         game2 = pyspiel.load_game(game_string)
+        game3 = pyspiel.load_game(game_string)
+        game4 = pyspiel.load_game(game_string)
+        game5 = pyspiel.load_game(game_string)
 
         state1 = game1.new_initial_state()
         state2 = game2.new_initial_state()
+        state3 = game3.new_initial_state()
+        state4 = game4.new_initial_state()
+        state5 = game5.new_initial_state()
 
         ex.horizontal_closed_chain(state1)
         ex.vertical_closed_chain(state2)
+        ex.horizontal_half_open_chain1(state3)
+        ex.vertical_half_open_chain(state4)
+        ex.horizontal_half_open_chain2(state5)
 
         value = "value"
         table.set(state1, value)
+        table.set(state3, value)
 
         self.assertEqual(table.get(state1), value)
         self.assertEqual(table.get(state2), value)
-
-
-    # horizontal_half_open_chain1 symmetrisch tegenover vertical_half_open_chain
-    def test_symmetries(self):
-        table = T.TOptimised_Table()
-        
-        # seed = None
-        # if seed:
-        #     r.seed(seed)
-
-        x = r.randint(4, 4)
-
-        num_rows = x
-        num_cols = x
-        game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
-        game1 = pyspiel.load_game(game_string)
-        game2 = pyspiel.load_game(game_string)
-
-        state1 = game1.new_initial_state()
-        state2 = game2.new_initial_state()
-
-        ex.horizontal_half_open_chain1(state1)
-        ex.vertical_half_open_chain(state2)
-
-        value = "value"
-        table.set(state1, value)
-
-        self.assertEqual(table.get(state1), value)
-        self.assertEqual(table.get(state2), value)
+        self.assertEqual(table.get(state3), value)
+        self.assertEqual(table.get(state4), value)
+        self.assertNotEqual(table.get(state5), value)
 
 if __name__ == '__main__':
     unittest.main()

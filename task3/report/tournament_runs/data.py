@@ -1,14 +1,14 @@
 import pandas as pd
 
 # Load the dataset from CSV into a DataFrame
-df = pd.read_csv("ec_0_en_emd_1_file4_multiplicative.csv")
+df = pd.read_csv("order.csv")
 
 # Filter the dataframe based on the conditions
-agent1_obtained_negative1 = df[(df['agent_p1'] == 0) & (df['return_p1'] == -1)]
-agent1_obtained_positive1 = df[(df['agent_p1'] == 0) & (df['return_p1'] ==  1)]
+agent1_obtained_negative1 = df[(df['agent_p1'] == "fill_first") & (df['return_p1'] == -1)]
+agent1_obtained_positive1 = df[(df['agent_p1'] == "fill_first") & (df['return_p1'] ==  1)]
 
-agent2_obtained_negative1 = df[(df['agent_p2'] == 0) & (df['return_p2'] == -1)]
-agent2_obtained_positive1 = df[(df['agent_p2'] == 0) & (df['return_p2'] ==  1)]
+agent2_obtained_negative1 = df[(df['agent_p2'] == "fill_first") & (df['return_p2'] == -1)]
+agent2_obtained_positive1 = df[(df['agent_p2'] == "fill_first") & (df['return_p2'] ==  1)]
 
 # Count the occurrences
 agent1_count_neg = len(agent1_obtained_negative1)
@@ -20,15 +20,15 @@ agent2_count_pos = len(agent2_obtained_positive1)
 ec_count_won = agent2_count_pos + agent1_count_pos
 ec_count_lost = agent2_count_neg + agent1_count_neg
 
-print("Number of times eval_function_chain agent won : ", ec_count_won)
-print("Number of times eval_function_chain agent lost : ", ec_count_lost)
+print("Number of times fill_first agent won : ", ec_count_won)
+print("Number of times fill_first agent lost : ", ec_count_lost)
 
 # Filter the dataframe based on the conditions
-agent1_obtained_negative1 = df[(df['agent_p1'] == 1) & (df['return_p1'] == -1)]
-agent1_obtained_positive1 = df[(df['agent_p1'] == 1) & (df['return_p1'] ==  1)]
+agent1_obtained_negative1 = df[(df['agent_p1'] == "half_haerted_first") & (df['return_p1'] == -1)]
+agent1_obtained_positive1 = df[(df['agent_p1'] == "half_haerted_first") & (df['return_p1'] ==  1)]
 
-agent2_obtained_negative1 = df[(df['agent_p2'] == 1) & (df['return_p2'] == -1)]
-agent2_obtained_positive1 = df[(df['agent_p2'] == 1) & (df['return_p2'] ==  1)]
+agent2_obtained_negative1 = df[(df['agent_p2'] == "half_haerted_first") & (df['return_p2'] == -1)]
+agent2_obtained_positive1 = df[(df['agent_p2'] == "half_haerted_first") & (df['return_p2'] ==  1)]
 
 # Count the occurrences
 agent1_count_neg = len(agent1_obtained_negative1)
@@ -40,8 +40,8 @@ agent2_count_pos = len(agent2_obtained_positive1)
 emd_count_won = agent2_count_pos + agent1_count_pos
 emd_count_lost = agent2_count_neg + agent1_count_neg
 
-print("Number of times eval_function_maximum_difference agent won : ", emd_count_won)
-print("Number of times eval_function_maximum_difference agent lost : ", emd_count_lost)
+print("Number of times half_haerted_first agent won : ", emd_count_won)
+print("Number of times half_haerted_first agent lost : ", emd_count_lost)
 
 # TODO: 
 # dit met heuristiek + 1 voor chains, dus niet veel effect, probeer andere methode

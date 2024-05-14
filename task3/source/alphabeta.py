@@ -10,6 +10,10 @@ from transposition_table import TOptimised_Table, Transposition_Table_Chains
 from chains_strategy import StrategyAdvisor
 from evaluators import eval_maximize_difference
 
+import pstats
+import cProfile
+from memory_profiler import profile
+
 def _alpha_beta(state, depth, alpha, beta, value_function,
                 maximizing_player_id, 
                 cache:TOptimised_Table,
@@ -17,16 +21,32 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
                 SA:StrategyAdvisor):
     
     if state.is_terminal():
+        print(f"State is Terminal: {state} on depth {depth}")
         return state.player_return(maximizing_player_id)
 
+# terminal OF aantal boxes van ene speler is al meer dan de heflt. 
+# if (board.scores[0] > board.columns * board.rows / 2) {
+#     return 1;
+# }
+# if (board.scores[1] > board.columns * board.rows / 2) {
+#     return -1;
+# }
+
     if depth <= 0:
+        print(f"Depth bound reached:") 
+        print(f"{state} on depth {depth}")
         return value_function(state, maximizing_player_id)
 
     val = cache.get(state)
     if val:
+        print(f"State was already in cache.")
+        print(state)
+        print(f"cache at depth {depth} utilised")
         return val
 
     possible_actions = SA.get_available_action(state, cache_chains, maximizing_player_id)
+    print(f"BEGIN on depth {depth}")
+    print(f'possible actions : {possible_actions}')
 
     player = state.current_player()
     if player == maximizing_player_id:
@@ -38,14 +58,20 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
             child_state.apply_action(action)
             child_SA.update_action(action)
 
+            print("maximum player trying to consider the following action.")
+            print(f"action: {SA.get_tabular_form(action)}")
+        
             child_value = _alpha_beta(child_state, depth - 1, alpha, beta,
                                         value_function, maximizing_player_id, cache, cache_chains, child_SA)
+
+            print(f"value of child of maximum player with action : {child_value} and {SA.get_tabular_form(action)}, action: {action}")
+
             if child_value > value:
                 value = child_value
             alpha = max(alpha, value)
             if alpha >= beta:
                 break  # beta cut-off
-        
+        print(f"END on depth {depth}")
         # transpostion table
         cache.set(state, value)
         return value
@@ -58,19 +84,26 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
 
             child_state.apply_action(action)
             child_SA.update_action(action)
-
+            
+            print("minimum player trying to consider the following action.")
+            print(f"action: {SA.get_tabular_form(action)}")
+        
             child_value  = _alpha_beta(child_state, depth - 1, alpha, beta,
-                                        value_function, maximizing_player_id, cache, cache_chains, child_SA)            
+                                        value_function, maximizing_player_id, cache, cache_chains, child_SA)
+            
+            print(f"value of child of minimum player with action : {child_value} and {SA.get_tabular_form(action)} and action {action}")
+
             if child_value < value:
                 value = child_value
             beta = min(beta, value)
             if alpha >= beta:
                 break  # alpha cut-off
-                            
+
+        print(f"END on depth {depth}")           
         # transpostion table
         cache.set(state, value)
         return value
-
+# @profile
 def minimax_alphabeta_search(game,
                             transposition_table:TOptimised_Table,
                             transposition_table_chains:Transposition_Table_Chains,
@@ -103,8 +136,8 @@ def minimax_alphabeta_search(game,
     if maximizing_player_id is None:
         maximizing_player_id = state.current_player()
     
-    print("intresting")
-    print(strategy_advisor.chains)
+    # print("intresting")
+    # print(strategy_advisor.chains)
     
     possible_actions = strategy_advisor.get_available_action(state, transposition_table_chains, maximizing_player_id)
     
@@ -114,15 +147,13 @@ def minimax_alphabeta_search(game,
     value = -float("inf")
     for action in possible_actions:
         child_state = state.clone()
-        
-        print("strategy_advisor")
-        print(strategy_advisor.chains)
-        
         child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
         child_SA.update_action(action)
-
+        print("BEGIN")
+        print(f"action : {strategy_advisor.get_tabular_form(action)} or {action}")
+        
         child_value = _alpha_beta(
                         child_state,
                         maximum_depth-1,
@@ -134,7 +165,16 @@ def minimax_alphabeta_search(game,
                         cache_chains = transposition_table_chains,
                         SA=child_SA.clone())
         
-        # print(child_value)
+        
+        print(f"child_value : {child_value}")
+        print("END")
+
+        # TODO: bij half haerted ding, als zelfde waarde is om hafl haerted en gwn fill box
+        # dan fill box ?
+        # want dan kiest het de eerste actie ...
+        # wegens die > ipv >= 
+        # als >= dan altijd tweede actie. 
+
         if child_value > value:
             value = child_value
             best_action = action  
@@ -142,16 +182,16 @@ def minimax_alphabeta_search(game,
     return value, best_action
 
 def main():
-    num_rows = 4
-    num_cols = 4
+    num_rows = 7
+    num_cols = 7
     game_string = f"dots_and_boxes(num_rows={num_rows},num_cols={num_cols})"
 
     print("Creating game: {}".format(game_string))
     game = pyspiel.load_game(game_string)
     state = game.new_initial_state()
     SA = StrategyAdvisor(num_rows, num_cols)
-    print(SA.chains)
-    max_allowed_depth = 50
+    # print(SA.chains)
+    max_allowed_depth = 1000
 
     maximizing_player_id = state.current_player()
 
@@ -186,4 +226,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # with cProfile.Profile() as profile: 
+    main() 
+    
+    # results = pstats.Stats(profile)
+    # results.sort_stats(pstats.SortKey.TIME)
+    # results.print_stats()
+    # results.dump_stats("results.prof")
