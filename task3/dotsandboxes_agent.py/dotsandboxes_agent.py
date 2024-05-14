@@ -22,7 +22,7 @@ sys.path.append(path)
 
 from open_spiel.python.algorithms import evaluate_bots
 
-from source.transposition_table import TOptimised_Table, Transposition_Table_Chains, Transposition_Table
+from source.transposition_table import TOptimised_Table, Transposition_Table_Chains
 from source.chains_strategy import StrategyAdvisor
 from source.evaluators import eval_maximize_difference
 from source.alphabeta import minimax_alphabeta_search
@@ -59,21 +59,13 @@ class Agent(pyspiel.Bot):
 
     def restart_at(self, state):
         """Starting a new game in the given state.
-
         :param state: The initial state of the game.
         """
-        # TODO: may decrease executation time by avoiding swapping memory. 
-        # del self.TT
-        # self.TT = TOptimised_Table()
-        
-        # hier mogelijks de rows en columns field van transposition table veranderen.
-
         params = state.get_game().get_parameters()
         num_rows = params['num_rows']
         num_cols = params['num_cols']
         self.SA = StrategyAdvisor(num_rows, num_cols)
         self.TT = TOptimised_Table(num_rows, num_cols)
-
 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
@@ -82,12 +74,11 @@ class Agent(pyspiel.Bot):
         :param player_id: The ID of the player that executed an action.
         :param action: The action which the player executed.
         """
-        if self.SA is None: # TODO: or self.TT is None  ? 
-            logger.info("self.SA is None in inform_action")
+        if self.SA is None: 
+            # logger.info("self.SA is None in inform_action")
             self.restart_at(state)
 
         if player_id != self.player_id:
-            #FIXME: run heurstic value on state and store in TT ?
             self.SA.update_action(action, state.current_player())
 
     def step(self, state):
@@ -97,14 +88,14 @@ class Agent(pyspiel.Bot):
         :returns: The selected action from the legal actions, or
             `pyspiel.INVALID_ACTION` if there are no legal actions available.
         """
-        # maximum tijd 200ms !!! 
-        t1 = time.time()
+        # maximum tijd 200ms
+        # t1 = time.time()
 
-        if self.SA is None: # TODO: or self.TT is None  ? 
-            logger.info("self.SA is None in step")
+        if self.SA is None: 
+            # logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 9
+        max_allowed_depth = 5
         
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
@@ -119,23 +110,13 @@ class Agent(pyspiel.Bot):
 
         self.SA.update_action(best_action, state.current_player())
 
-        # print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
-        # print(f"the minimax value is : {value}")
+        # t2 = time.time()
+        # print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action with eval_maximize_difference")
 
-        # if value > 0 :
-        #     print(f"In the simulation, Player {self.player_id} wins.")
-        # elif value < 0 : 
-        #     print(f"In the simulation, Player {self.player_id} wins.")
-        # else : 
-        #     print("In the simulation, It's a draw")
-
-        t2 = time.time()
-        print(f"It took {(t2 - t1) * 1000} milliseconds to infer an action with eval_maximize_difference")
-
-        print(f"The transposition table was used as follows: ")
-        print(f"The amount of hits          : {self.TT.get_hits()}")
-        print(f"The amount of misses        : {self.TT.get_misses()}")
-        print(f"The amount of symmetry hits : {self.TT.get_symmhits()}")
+        # print(f"The transposition table was used as follows: ")
+        # print(f"The amount of hits          : {self.TT.get_hits()}")
+        # print(f"The amount of misses        : {self.TT.get_misses()}")
+        # print(f"The amount of symmetry hits : {self.TT.get_symmhits()}")
 
         return best_action
 

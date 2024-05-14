@@ -208,8 +208,7 @@ class StrategyAdvisor :
                 fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
-                
-                return [dhh_action, fb_action]
+                return [fb_action, dhh_action]
             
             else :
                 chain_data = self.chains["closed"][0]
@@ -232,8 +231,7 @@ class StrategyAdvisor :
                 fb_action = self.get_fill_box(
                     chain_data["chain"],
                     chain_data["directions"])
-                
-                return [shh_action, fb_action]
+                return [fb_action, shh_action]
             
             else :
                 chain_data = self.chains["half_open"][0]

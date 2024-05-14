@@ -23,7 +23,7 @@ sys.path.append(path)
 from open_spiel.python.algorithms import evaluate_bots
 
 from source.transposition_table import TOptimised_Table, Transposition_Table_Chains, Transposition_Table
-from source.chains_strategy2 import StrategyAdvisor
+from source.chains_strategy import StrategyAdvisor
 from source.evaluators import eval_maximize_difference
 from source.alphabeta import minimax_alphabeta_search
 
