@@ -85,7 +85,7 @@ class Agent(pyspiel.Bot):
 
         if player_id != self.player_id:
             #FIXME: run heurstic value on state and store in TT ?
-            self.SA.update_action(action)
+            self.SA.update_action(action, state.current_player())
 
     def step(self, state):
         """Returns the selected action in the given state.
@@ -114,7 +114,7 @@ class Agent(pyspiel.Bot):
 
                                             maximizing_player_id=self.player_id)
 
-        self.SA.update_action(best_action)
+        self.SA.update_action(best_action, state.current_player())
 
         # print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
         # print(f"the minimax value is : {value}")

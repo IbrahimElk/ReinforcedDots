@@ -123,7 +123,7 @@ def minimax_chains_search(game,
         child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
-        child_SA.update_action(action)
+        child_SA.update_action(action, state.current_player())
 
         child_value = _minimax_chains(
                         child_state,

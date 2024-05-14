@@ -94,7 +94,7 @@ def _minimax_chains(state,
         child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
-        child_SA.update_action(action)
+        child_SA.update_action(action, state.current_player())
 
         value = _minimax_chains(child_state, depth-1, maximizing_player_id, value_function, cache, child_SA)
         values_children.append(value)

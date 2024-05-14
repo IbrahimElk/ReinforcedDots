@@ -484,7 +484,7 @@ class StrategyAdvisor :
     #     lcr_actions = []
     #     for action in actions: 
     #         cloned_advisor = self.clone()
-    #         cloned_advisor.update_action(action)
+    #         cloned_advisor.update_action(action, state.current_player())
             
     #         state_string = vectors_to_dbn(self.num_rows, self.num_cols, cloned_advisor.h_, cloned_advisor.v_)
             

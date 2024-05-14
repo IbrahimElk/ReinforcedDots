@@ -56,7 +56,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
             child_SA = SA.clone()
 
             child_state.apply_action(action)
-            child_SA.update_action(action)
+            child_SA.update_action(action, state.current_player())
 
             print("maximum player trying to consider the following action.")
             print(f"action: {SA.get_tabular_form(action)}")
@@ -83,7 +83,7 @@ def _alpha_beta(state, depth, alpha, beta, value_function,
             child_SA = SA.clone()
 
             child_state.apply_action(action)
-            child_SA.update_action(action)
+            child_SA.update_action(action, state.current_player())
             
             print("minimum player trying to consider the following action.")
             print(f"action: {SA.get_tabular_form(action)}")
@@ -150,7 +150,7 @@ def minimax_alphabeta_search(game,
         child_SA = strategy_advisor.clone()
 
         child_state.apply_action(action)
-        child_SA.update_action(action)
+        child_SA.update_action(action, state.current_player())
         print("BEGIN")
         print(f"action : {strategy_advisor.get_tabular_form(action)} or {action}")
         

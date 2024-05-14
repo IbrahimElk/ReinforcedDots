@@ -108,7 +108,7 @@ class Agent(pyspiel.Bot):
                                             value_function=eval_function_chains,
                                             maximizing_player_id=self.player_id)
 
-        self.SA.update_action(best_action)
+        self.SA.update_action(best_action, state.current_player())
 
         # print(f"next recommended action is : {self.SA.get_tabular_form(best_action)[0],self.SA.get_tabular_form(best_action)[1],self.SA.get_tabular_form(best_action)[2] } ")
         # print(f"the minimax value is : {value}")
