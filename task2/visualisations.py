@@ -248,7 +248,7 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
         
         trajectorynr += 1
         
-        subplt.plot(x,y,'-',linewidth=4-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
+        subplt.plot(x,y,'-',linewidth=5-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
         subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
         subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
 
