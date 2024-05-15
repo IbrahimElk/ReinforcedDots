@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 def parseJSON():
     current_dir = os.path.dirname(__file__)
-    json_filename = os.path.join(current_dir, 'data3.json')
+    json_filename = os.path.join(current_dir, 'data.json')
 
     with open(json_filename, "r") as json_file:
         data = json.load(json_file)
@@ -31,15 +31,15 @@ def construct_plot(x, y,
     sns.set_style("whitegrid")
     plt.figure(figsize=(12, 6))
     sns.barplot(x=x, y=y, hue=categorical)
-    plt.xlabel(xlabel, fontsize=14)
-    plt.ylabel(ylabel, fontsize=14)
-    plt.title(title, fontsize=16)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+    plt.xlabel(xlabel, fontsize=16)
+    plt.ylabel(ylabel, fontsize=16)
+    plt.title(title, fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     if logy:
         plt.yscale('log')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
-    plt.legend(title=legend, fontsize=12, title_fontsize=12)
+    plt.legend(title=legend, fontsize=14, title_fontsize=14)
     plt.tight_layout()
     return plt
 

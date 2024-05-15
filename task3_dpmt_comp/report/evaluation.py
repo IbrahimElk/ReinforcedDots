@@ -9,11 +9,11 @@ import psutil
 package_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")    # json_dir_path = os.path.join(current_dir, dirname)
 sys.path.append(package_directory)
 
-from dotsandboxes_agent1.minimax_search import minimax_search, minimax_chains_search
-from dotsandboxes_agent1.alphabeta import minimax_alphabeta_search
-from dotsandboxes_agent1.chains_strategy import StrategyAdvisor
-from dotsandboxes_agent1.transposition_table import Transposition_Table, TEmpty_Table, TOptimised_Table
-from dotsandboxes_agent1.evaluators import eval_maximize_difference
+from minimax_search import minimax_search, minimax_chains_search
+from alphabeta import minimax_alphabeta_search
+from chains_strategy import StrategyAdvisor
+from transposition_table import Transposition_Table, TEmpty_Table, TOptimised_Table
+from evaluators import eval_maximize_difference
 
 import json
 
