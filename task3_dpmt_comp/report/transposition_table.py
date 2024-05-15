@@ -76,12 +76,6 @@ class TOptimised_Table(Transposition_Table):
             self.symmhits += 1
             return self.cache[cache_result]
         
-        # FIXME : ibr : MSS OVERBODIG!!
-        cache_result = s.check_vh(state, num_rows, num_cols)
-        if cache_result in self.cache:
-            self.symmhits += 1
-            return self.cache[cache_result]
-
         if num_rows == num_cols:
             cache_result = s.check_diag1(state, num_rows, num_cols)
             if cache_result in self.cache:

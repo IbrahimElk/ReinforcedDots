@@ -39,6 +39,8 @@ def scrape_minimax(minimax, game, state, advisor, table, f):
     cache = table.get_cache()
     nb_keys = len(cache.keys())
     nb_hits = table.get_hits()
+    if isinstance(table, TOptimised_Table):
+        nb_hits += table.get_symmhits()
     nb_misses = table.get_misses()
 
     results = {
