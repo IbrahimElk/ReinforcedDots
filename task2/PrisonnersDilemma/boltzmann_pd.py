@@ -44,10 +44,10 @@ def main(_):
     
     wife    = BoltzmannQLearner(player_id=0, 
                                 num_actions=num_actions,    
-                                temperature_schedule=rl_tools.ConstantSchedule(0.2))
+                                temperature_schedule=rl_tools.LinearSchedule(.3, 0.01, 1000))
     husband = BoltzmannQLearner(player_id=1, 
                                 num_actions=num_actions,    
-                                temperature_schedule=rl_tools.ConstantSchedule(0.2))
+                                temperature_schedule=rl_tools.LinearSchedule(.3, 0.01, 1000))
     # random agents for evaluation
     random_agents = [
         random_agent.RandomAgent(player_id=idx, num_actions=num_actions)

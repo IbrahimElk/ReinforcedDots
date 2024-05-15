@@ -62,10 +62,10 @@ class Agent(pyspiel.Bot):
         :param state: The initial state of the game.
         """
         params = state.get_game().get_parameters()
-        num_rows = params['num_rows']
-        num_cols = params['num_cols']
-        self.SA = StrategyAdvisor(num_rows, num_cols)
-        self.TT = TOptimised_Table(num_rows, num_cols)
+        self.num_rows = params['num_rows']
+        self.num_cols = params['num_cols']
+        self.SA = StrategyAdvisor(self.num_rows, self.num_cols)
+        self.TT = TOptimised_Table(self.num_rows, self.num_cols)
 
     def inform_action(self, state, player_id, action):
         """Let the bot know of the other agent's actions.
@@ -95,7 +95,10 @@ class Agent(pyspiel.Bot):
             # logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        max_allowed_depth = 5
+        if self.num_rows < 10 and self.num_cols < 10:
+            max_allowed_depth = 9
+        else: 
+            max_allowed_depth = 5
         
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),

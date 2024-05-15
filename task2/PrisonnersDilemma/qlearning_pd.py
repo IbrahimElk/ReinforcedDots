@@ -16,11 +16,13 @@ import sys
 from absl import app
 from absl import flags
 import numpy as np
+import pyspiel 
 
 from open_spiel.python import rl_tools
 from open_spiel.python import rl_environment
 from open_spiel.python.algorithms import random_agent
 from open_spiel.python.algorithms import tabular_qlearner
+import open_spiel.python.egt.utils as utils
 
 def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
   """Evaluates `trained_agents` against `random_agents` for `num_episodes`."""
@@ -51,16 +53,26 @@ def eval_against_random_bots(env, trained_agents, random_agents, num_episodes):
 def main(_):
     game = "matrix_pd"
     num_players = 2
-
+    game = pyspiel.load_game(game)
     env = rl_environment.Environment(game)
     num_actions = env.action_spec()["num_actions"]
     
-    prisoner1    = tabular_qlearner.QLearner(player_id=0, 
-                                num_actions=num_actions,    
-                                epsilon_schedule=rl_tools.ConstantSchedule(0.2))
-    prisoner2 = tabular_qlearner.QLearner(player_id=1, 
-                                num_actions=num_actions,    
-                                epsilon_schedule=rl_tools.ConstantSchedule(0.2))
+    temperature = 0.2
+    agents =[ tabular_qlearner.QLearner(player_id=idx, 
+                        num_actions=num_actions, 
+                        epsilon_schedule=rl_tools.ConstantSchedule(temperature))
+                for idx in range(num_players)]
+
+    intial_q_values = [
+    [{0: 0, 1: 0},      {0: 0, 1: 0}],
+    [{0: -.01, 1: 0},   {0: .015, 1: 0}], 
+    [{0: 0, 1: 0.01},   {0: 0, 1: 0.0075}], 
+    [{0: .02, 1: 0.005},{0: .01, 1: .01}]
+    ]
+    
+    for i in range(num_players):
+      agents[i]._q_values['[0.0]']  = intial_q_values[0][i]
+
     # random agents for evaluation
     random_agents = [
         random_agent.RandomAgent(player_id=idx, num_actions=num_actions)
@@ -68,20 +80,20 @@ def main(_):
     ]
 
     # 1. Train the agents
-    training_episodes = 10**6
+    training_episodes = 25000
     for cur_episode in range(training_episodes):
-        if cur_episode % int(1e4) == 0:
-            win_rates = eval_against_random_bots(env, [prisoner1, prisoner2], random_agents, 1000)
-            logging.info("Starting episode %s, win_rates %s", cur_episode, win_rates)
+        # if cur_episode % int(1e4) == 0:
+        #     win_rates = eval_against_random_bots(env, [prisoner1, prisoner2], random_agents, 1000)
+        #     logging.info("Starting episode %s, win_rates %s", cur_episode, win_rates)
         time_step = env.reset()
         while not time_step.last():
-            prisoner1_output = prisoner1.step(time_step)
-            prisoner2_output = prisoner2.step(time_step)
+            prisoner1_output = agents[0].step(time_step)
+            prisoner2_output = agents[1].step(time_step)
             
             time_step = env.step([prisoner1_output.action,prisoner2_output.action])
 
-        prisoner1.step(time_step)
-        prisoner2.step(time_step)
+        agents[0].step(time_step)
+        agents[1].step(time_step)
 
     print("")
     print(env.get_state)

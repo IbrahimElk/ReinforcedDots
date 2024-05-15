@@ -28,14 +28,19 @@ def train_agents(player1: rl_agent.AbstractAgent,
         while not time_step.last():
             player1_output = player1.step(time_step)
             player2_output = player2.step(time_step)
-            time_step = env.step([player1_output.action,player2_output.action])
+            time_step = env.step([player1_output.action, player2_output.action])
         
-        if cur_episode % int(1e4) == 0:
-            print("Starting episode : ", cur_episode)
+        # if cur_episode % int(5e2) == 0:
+        #     print("Starting episode : ", cur_episode)
 
         # de eerste 100 episodes opslaan.
-        if cur_episode % 10 == 0 :
+        # cur_episode % 500 == 0 or
+        # or cur_episode <= 1000
+        # cur_episode % 100 == 0 or  
+        if cur_episode <= 100 :
             points.append((list(player1_output.probs),list(player2_output.probs)))
+
+            # points.append((list(player1_output.probs),list(player2_output.probs)))
 
         player1.step(time_step)
         player2.step(time_step)
@@ -43,33 +48,35 @@ def train_agents(player1: rl_agent.AbstractAgent,
 
 def get_all_red_lines(
         method:str,
-        amt_distinct_start_probs:int,
         num_lines:int=5,
-        temperature:float=0.2,
         Kappa:int = 15,
         game = "matrix_bos"):
 
     lijst = []
     num_actions = get_num_actions(game)
-    for _ in range(amt_distinct_start_probs):
-        
-        random_probs = [random.random() for _ in range(num_actions)]
-        total = sum(random_probs)
-        normalized_probs = [x/total for x in random_probs]
+    if num_actions == 2: 
+        intial_q_values = [
+            [{0: 0, 1: 0},{0: 0, 1: 0}],
+            [{0: -1, 1: 0},{0: 1, 1: 0}], 
+            [{0: 0, 1: -0.25}, {0: 0, 1: 0.75}], 
+            [{0: 1, 1: 0.5},{0: 0, 1: 0}]]
+    else : 
+        intial_q_values = [
+            [{0: 0, 1: 0, 2: 0},      {0: 0, 1: 0, 2: 0}],
+            [{0: -1, 1: 0, 2: 1},     {0: 1, 1: 0, 2: 0}], 
+            [{0: 0, 1: -0.25, 2: -1},  {0: 0, 1: 0.75, 2: 0}], 
+            [{0: 1, 1: 0.5, 2: 0},    {0: 0, 1: 0, 2: 0.5}]]
 
-        multiple_hists_per_learner = []
-        for _ in range(num_lines):
-            print(normalized_probs)
-            [agent1, agent2] = get_correct_agents(method, normalized_probs, num_actions, temperature, Kappa)
-            history_of_probs = train_agents(agent1, agent2, game=game, training_episodes=1000)
-            multiple_hists_per_learner.append(history_of_probs)
+    amt_distinct_start_probs = len(intial_q_values)
+    for i in range(amt_distinct_start_probs):
+        # multiple_hists_per_learner = []
+        # for _ in range(num_lines):
+        [agent1, agent2] = get_correct_agents(method, intial_q_values[i], num_actions, Kappa)
+        history_of_probs = train_agents(agent1, agent2, game=game, training_episodes=25000)
+        # multiple_hists_per_learner.append(history_of_probs)
         
-        mean_hstr = mean_elementwise(multiple_hists_per_learner)
-        startingposition = {
-            "starting_probs: " : normalized_probs,
-            "line: " : mean_hstr
-        }
-        lijst.append(startingposition)
+        # mean_hstr = mean_elementwise(multiple_hists_per_learner)
+        lijst.append(history_of_probs)
     return lijst
 
 def mean_elementwise(nested_lst):
@@ -86,91 +93,107 @@ def get_num_actions(game:str):
     num_actions = env.action_spec()["num_actions"]
     return num_actions
 
-def get_correct_agents(method:str, init_probs, num_actions, temperature, kappa):
+def get_correct_agents(method:str, qvalues, num_actions, kappa):
     num_players = 2
     agents = []
     match method:
         case "Q":
+            # step_size = 0.01
             agents =[
                 QLearner(player_id=idx, 
                         num_actions=num_actions, 
-                        epsilon_schedule=rl_tools.ConstantSchedule(temperature),
-                        init_probs=init_probs)
+                        epsilon_schedule=rl_tools.LinearSchedule(0.1, 0.05,25000),
+                        # step_size=step_size
+                        )
                 for idx in range(num_players)
             ]
         case "B" : 
+            # step_size = 0.001
             agents =[
                 BoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                temperature_schedule=rl_tools.ConstantSchedule(temperature),
-                                init_probs=init_probs)
+                                # step_size = step_size,
+                                temperature_schedule=rl_tools.LinearSchedule(0.1, 0.01, 30000))
                 for idx in range(num_players)
             ]
         case "LB" : 
             agents =[
                 LenientBoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                temperature_schedule=rl_tools.ConstantSchedule(temperature),
-                                kappa=kappa,
-                                init_probs=init_probs)
+                                temperature_schedule=rl_tools.LinearSchedule(0.1, 0.01, 25000),
+                                kappa=kappa)
                 for idx in range(num_players)
             ]
         case _: 
             raise ValueError("Invalid method name provided")
-    return agents
 
+    for i in range(len(agents)):
+        agents[i]._q_values['[0.0]']  = qvalues[i]
+            
+    return agents
+    
 def record_results(game_name, dict_q_learning):
     dict_q_learning[game_name] = {"Q": [], "B": [], "LB":[]}
-    starting_amnt_probs = 5
 
     # STANDAARD Q LEARNING:
-    epsilon_values = [0.2, 0.5, 0.7]
-    for epsilon in epsilon_values:
-        lijst   = get_all_red_lines(method="Q",
-                                    num_lines=5,
-                                    amt_distinct_start_probs=starting_amnt_probs, 
-                                    temperature=epsilon, 
-                                    Kappa=1, # heeft geen invloed, is enkel van invloed voor lenient boltzmann agent.
-                                    game=game_name)
-        
-        # TODO: multiple starting positions, all with num_lines = 5 to take the average. 
-        dict_q_learning[game_name]["Q"].append({"epsilon": epsilon, 
-                                                "num_lines": 5, 
-                                                "data": lijst})
+    # epsilon_values = [0.2, 0.5, 0.7]
+    # for epsilon in epsilon_values:
+    lijst   = get_all_red_lines(method="Q",
+                                Kappa=1, # heeft geen invloed, is enkel van invloed voor lenient boltzmann agent.
+                                game=game_name)
+    
+    # TODO: multiple starting positions, all with num_lines = 5 to take the average. 
+    dict_q_learning[game_name]["Q"].append({"epsilon": -1, 
+                                            "data": lijst})
     # # TRADITIONAL BOLtZMANN Q LEARNING
-    for temperature in [0.2, 1, 5]: # FIXME: dit interval gekozen, maar nergens opt intenret een aanrader voor interval waarden...
-        lijst   = get_all_red_lines(method="B",
-                            num_lines=5,
-                            amt_distinct_start_probs=starting_amnt_probs, 
-                            temperature=temperature, 
-                            Kappa=1, 
-                            game=game_name)
-        
-        dict_q_learning[game_name]["B"].append({"temperature": temperature, 
-                                                "num_lines": 5, 
-                                                "data": lijst})
+    # for temperature in [0.2, 0.5, 0.7]: # FIXME: dit interval gekozen, maar nergens opt intenret een aanrader voor interval waarden...
+    lijst   = get_all_red_lines(method="B",
+                        Kappa=1, 
+                        game=game_name)
+    
+    dict_q_learning[game_name]["B"].append({"temperature": -1, 
+                                            "data": lijst})
 
     # LENIENT BOLtZMANN Q LEARNING
     for Kappa in [5, 10]:
-        for temperature in [0.2, 1, 5]:
-            lijst = get_all_red_lines(method="LB",
-                                num_lines=5, 
-                                amt_distinct_start_probs=starting_amnt_probs,
-                                temperature=temperature, 
-                                Kappa=Kappa, 
-                                game=game_name)
-            dict_q_learning[game_name]["LB"].append({"kappa": Kappa,
-                                                     "temperature": temperature, 
-                                                     "num_lines": 5, 
-                                                     "data": lijst})
+        lijst = get_all_red_lines(method="LB",
+                            Kappa=Kappa, 
+                            game=game_name)
+        dict_q_learning[game_name]["LB"].append({"kappa": Kappa,
+                                                 "temperature": -1, 
+                                                 "data": lijst})
 
 def main():
-    game_name = ["matrix_bos", "matrix_sub", "matrix_pd", "matrix_brps"]
+    game_name = ["matrix_bos" , "matrix_sub", "matrix_pd" , "matrix_brps"]
     dict_q_learning = {}
     for game in game_name:
         record_results(game, dict_q_learning)
 
-    filename = "data.json"
+    # O1   -> (1, 0.05,25000) + (1, 0.01, 30000) + (1, 0.01, 25000)           + step sizes (both) + points iedre 100 + eerste 100
+    # O2   -> (0.75, 0.05,25000) + (0.75, 0.01, 30000) + (0.75, 0.01, 25000)  + step sizes (both) + points iedre 100 + eerste 100
+    # O3   -> (0.5, 0.05,25000)  + (0.5, 0.01, 30000)  + (0.5,  0.01, 25000)  + step sizes (both) + points iedre 100 + eerste 100
+    # O4   -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + step sizes (both) + points iedre 100 + eerste 100
+    # O5   -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + step sizes (both) + points iedre 100 + eerste 100
+
+    # O6   -> (1, 0.05,25000) + (1, 0.01, 30000) + (1, 0.01, 25000)           + no step sizes (both) + points iedre 100 + eerste 100
+    # O7   -> (0.75, 0.05,25000) + (0.75, 0.01, 30000) + (0.75, 0.01, 25000)  + no step sizes (both) + points iedre 100 + eerste 100
+    # O8   -> (0.5, 0.05,25000)  + (0.5, 0.01, 30000)  + (0.5,  0.01, 25000)  + no step sizes (both) + points iedre 100 + eerste 100
+    # O9   -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + no step sizes (both) + points iedre 100 + eerste 100
+    # 010  -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + no step sizes (both) + points iedre 100 + eerste 100
+
+    # 011  -> (1, 0.05,25000) + (1, 0.01, 30000) + (1, 0.01, 25000)           + no step sizes (both) + points iedre 100 + geen eerste 100
+    # 012  -> (0.75, 0.05,25000) + (0.75, 0.01, 30000) + (0.75, 0.01, 25000)  + no step sizes (both) + points iedre 100 + geen eerste 100
+    # 013  -> (0.5, 0.05,25000)  + (0.5, 0.01, 30000)  + (0.5,  0.01, 25000)  + no step sizes (both) + points iedre 100 + geen eerste 100
+    # 014  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + no step sizes (both) + points iedre 100 + geen eerste 100
+    # 015  -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + no step sizes (both) + points iedre 100 + geen eerste 100
+    
+    # 016  -> (1, 0.05,25000) + (1, 0.01, 30000) + (1, 0.01, 25000)           + no step sizes (both) + geen points iedre 100 + eerste 100
+    # 017  -> (0.75, 0.05,25000) + (0.75, 0.01, 30000) + (0.75, 0.01, 25000)  + no step sizes (both) + geen points iedre 100 + eerste 100
+    # 018  -> (0.5, 0.05,25000)  + (0.5, 0.01, 30000)  + (0.5,  0.01, 25000)  + no step sizes (both) + geen points iedre 100 + eerste 100
+    # 019  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + no step sizes (both) + geen points iedre 100 + eerste 100
+    # 020  -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + no step sizes (both) + geen points iedre 100 + eerste 100
+
+    filename = "020.json"
     directory_path = os.path.dirname(os.path.realpath(__file__))
     json_file_path = os.path.join(directory_path, filename)
 

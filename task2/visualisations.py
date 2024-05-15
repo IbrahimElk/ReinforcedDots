@@ -6,6 +6,7 @@ from open_spiel.python.egt import dynamics
 from open_spiel.python.egt import utils
 from open_spiel.python import rl_environment
 import open_spiel.python.egt.visualization as vis
+import numpy as np
 
 from matplotlib import projections
 import matplotlib.pyplot as plt
@@ -15,6 +16,28 @@ from open_spiel.python import rl_tools, rl_agent
 from open_spiel.python.algorithms.tabular_qlearner import QLearner
 from open_spiel.python.algorithms.boltzmann_tabular_qlearner import BoltzmannQLearner
 from lenient_boltzmann_tabular_qlearner import LenientBoltzmannQLearner
+
+
+colordict = {
+    1: 'red',
+    2: 'blue',
+    3: 'green',
+    4: 'orange',
+    5: 'purple',
+    6: 'cyan',
+    7: 'magenta',
+    8: 'yellow',
+    9: 'brown',
+    10: 'lime',
+    11: 'pink',
+    12: 'teal',
+    13: 'lavender',
+    14: 'beige',
+    15: 'maroon',
+}
+
+save_path = '020'
+global_filename = save_path + '.json'
 
 def main():
     """
@@ -37,9 +60,9 @@ def main():
     plot_replicator_dynamics_rps(game_brps)
     plot_replicator_dynamics_2x2(game_bos)
     plot_replicator_dynamics_2x2(game_pd)
-
+    
     current_directory_path = os.getcwd()
-    data_path = os.path.join(current_directory_path,'','data2.json')
+    data_path = os.path.join(current_directory_path,'',global_filename)
     f = open(data_path,encoding='utf-8')
     data = json.load(f)
 
@@ -55,48 +78,57 @@ def main():
             if algorithmdict[alg] == "e-greedy":
                 parameters = []
                 parameters.append(data[game][alg][0]["data"])
-                parameters.append(data[game][alg][1]["data"])
-                parameters.append(data[game][alg][2]["data"])
+                # parameters.append(data[game][alg][1]["data"])
+                # parameters.append(data[game][alg][2]["data"])
                 
                 parameterlist.append(['epsilon = ' + str(data[game][alg][0]["epsilon"])])
-                parameterlist.append(['epsilon = ' + str(data[game][alg][1]["epsilon"])])
-                parameterlist.append(['epsilon = ' + str(data[game][alg][2]["epsilon"])])
+                # parameterlist.append(['epsilon = ' + str(data[game][alg][1]["epsilon"])])
+                # parameterlist.append(['epsilon = ' + str(data[game][alg][2]["epsilon"])])
 
 
             elif algorithmdict[alg] == "boltzmann":
                 parameters = []
                 parameters.append(data[game][alg][0]["data"])
-                parameters.append(data[game][alg][1]["data"])
-                parameters.append(data[game][alg][2]["data"])
+                # parameters.append(data[game][alg][1]["data"])
+                # parameters.append(data[game][alg][2]["data"])
 
                 parameterlist.append(['temperature = ' + str(data[game][alg][0]["temperature"])])
-                parameterlist.append(['temperature = ' + str(data[game][alg][1]["temperature"])])
-                parameterlist.append(['temperature = ' + str(data[game][alg][2]["temperature"])])
+                # parameterlist.append(['temperature = ' + str(data[game][alg][1]["temperature"])])
+                # parameterlist.append(['temperature = ' + str(data[game][alg][2]["temperature"])])
 
 
             elif algorithmdict[alg] == "lenient boltzmann":
                 parameters = []
-                print(data[game][alg][3]["kappa"])
-                print(data[game][alg][4]["kappa"])
-                print(data[game][alg][5]["kappa"])
-                parameters.append(data[game][alg][3]["data"])
-                parameters.append(data[game][alg][4]["data"])
-                parameters.append(data[game][alg][5]["data"])
+
+                # kappa 5
+                # print(data[game][alg][0]["kappa"])
+                # print(data[game][alg][1]["kappa"])
+                # print(data[game][alg][2]["kappa"])
+                # parameters.append(data[game][alg][0]["data"])
+                # parameters.append(data[game][alg][1]["data"])
+                # parameters.append(data[game][alg][2]["data"])
+                
+                # kappa 10
+                print(data[game][alg][0]["kappa"])
+                print(data[game][alg][1]["kappa"])
+                # print(data[game][alg][5]["kappa"])
+                parameters.append(data[game][alg][0]["data"])
+                parameters.append(data[game][alg][1]["data"])
+                # parameters.append(data[game][alg][5]["data"])
+
                 
                 il = []
-                il.append('kappa = ' + str(data[game][alg][3]["kappa"]))
-                il.append('temperature = ' + str(data[game][alg][3]["temperature"]))
+                il.append('kappa = ' + str(data[game][alg][0]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][0]["temperature"]))
                 parameterlist.append(il)
                 il = []
-                il.append('kappa = ' + str(data[game][alg][4]["kappa"]))
-                il.append('temperature = ' + str(data[game][alg][4]["temperature"]))
+                il.append('kappa = ' + str(data[game][alg][1]["kappa"]))
+                il.append('temperature = ' + str(data[game][alg][1]["temperature"]))
                 parameterlist.append(il)
-                il = []
-                il.append('kappa = ' + str(data[game][alg][5]["kappa"]))
-                il.append('temperature = ' + str(data[game][alg][5]["temperature"]))
-                parameterlist.append(il)
-
-
+                # il = []
+                # il.append('kappa = ' + str(data[game][alg][5]["kappa"]))
+                # il.append('temperature = ' + str(data[game][alg][5]["temperature"]))
+                # parameterlist.append(il)
 
             else:
                 raise ValueError("Unknown algorithm name")
@@ -106,7 +138,10 @@ def main():
             if "Rock, Paper, Scissors" not in gamedict[game].get_type().long_name:
                 ctr = 0
                 for trajectorylist in parameters:
-                    plot_trajectory_2x2(gamedict[game],algorithmdict[alg],trajectorylist,parameterlist[ctr])
+                    plot_trajectory_2x2(gamedict[game],
+                                        algorithmdict[alg],
+                                        trajectorylist,
+                                        parameterlist[ctr])
                     ctr += 1
 
             else:
@@ -123,7 +158,7 @@ def plot_replicator_dynamics_rps(game):
     Plots the replicator dynamics for a given rock, paper, scissor matrix game.
     """
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','figures')
+    subfolder_path = os.path.join(current_directory_path, save_path, 'figures_dyn')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -151,7 +186,7 @@ def plot_replicator_dynamics_2x2(game):
     Plots the replicator dynamics for a given 2x2 matrix game.
     """
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','figures')
+    subfolder_path = os.path.join(current_directory_path,save_path, 'figures_dyn')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -182,10 +217,12 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
     by providing a list of trajectories containing the history of the 
     states achieved during the self-play.
     """
-    trajectorylist = trajectorylist[0][2:]
+
+    # trajectorylist = trajectorylist[0]
+    # print(trajectorylist)
     
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','figures')
+    subfolder_path = os.path.join(current_directory_path,save_path, 'figures_trj')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -200,10 +237,8 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
 
     # Plot trajectories
     trajectorynr = 0
-    colordict = {1:'red',2:'blue',3:'green'}
 
     for trajectory in trajectorylist:
-        trajectorynr += 1
         x = []
         y = []
 
@@ -214,8 +249,12 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
         subplt.plot(x,y,'-',linewidth=4-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
         subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
         subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
+
+    trajectorynr += 1
+
    
-    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg} ({stringify_list(parameterlist)}).")
+#    ({stringify_list(parameterlist)})
+    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
     plt.xlim(-0.01,1.01)
     plt.ylim(-0.01,1.01)
     plt.xlabel(f"P({game.row_action_name(0)}) Agent 1")
@@ -230,9 +269,8 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
     by providing a list of trajectories containing the history of the 
     states achieved during the self-play.
     """
-    trajectorylist = trajectorylist[0][2:]
     current_directory_path = os.getcwd()
-    subfolder_path = os.path.join(current_directory_path,'task2','figures')
+    subfolder_path = os.path.join(current_directory_path, save_path,'figures_rps_trj')
     if not os.path.exists(subfolder_path):
         os.makedirs(subfolder_path)
 
@@ -247,10 +285,9 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
 
     # Plot trajectories
     trajectorynr = 0
-    colordict = {1:'red',2:'blue',3:'green'}
+    # colordict = {1:'red',2:'blue',3:'green'}
 
     for trajectory in trajectorylist:
-        trajectorynr += 1
         x = []
 
         for prob_hist in trajectory:
@@ -260,7 +297,10 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
         subplt.scatter([x[0]],marker='o',alpha=1,color=colordict[trajectorynr])
         subplt.scatter([x[-1]],marker='s',alpha=1,color=colordict[trajectorynr])
    
-    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg} ({stringify_list(parameterlist)}).")
+        trajectorynr += 1
+
+#    ({stringify_list(parameterlist)})
+    subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
     subplt.set_labels(["Rock", "Paper", "Scissors"])
     filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + stringify_list(parameterlist) + ".png")
     plt.savefig(filepath)
