@@ -36,7 +36,7 @@ colordict = {
     15: 'maroon',
 }
 
-save_path = '020'
+save_path = '021'
 global_filename = save_path + '.json'
 
 def main():
@@ -246,11 +246,12 @@ def plot_trajectory_2x2(game,alg:str,trajectorylist,parameterlist):
             x.append(prob_hist[0][0])
             y.append(prob_hist[1][0])
         
+        trajectorynr += 1
+        
         subplt.plot(x,y,'-',linewidth=4-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
         subplt.plot(x[0],y[0],'o',alpha=1,color=colordict[trajectorynr])
         subplt.plot(x[-1],y[-1],'s',alpha=1,color=colordict[trajectorynr])
 
-    trajectorynr += 1
 
    
 #    ({stringify_list(parameterlist)})
@@ -293,11 +294,12 @@ def plot_trajectory_rps(game,alg:str,trajectorylist,parameterlist):
         for prob_hist in trajectory:
             x.append(prob_hist[0])
         
+        trajectorynr += 1
+
         subplt.plot(x,linewidth=4-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
         subplt.scatter([x[0]],marker='o',alpha=1,color=colordict[trajectorynr])
         subplt.scatter([x[-1]],marker='s',alpha=1,color=colordict[trajectorynr])
    
-        trajectorynr += 1
 
 #    ({stringify_list(parameterlist)})
     subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")

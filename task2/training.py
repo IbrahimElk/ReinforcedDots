@@ -37,7 +37,7 @@ def train_agents(player1: rl_agent.AbstractAgent,
         # cur_episode % 500 == 0 or
         # or cur_episode <= 1000
         # cur_episode % 100 == 0 or  
-        if cur_episode <= 100 :
+        if cur_episode <= 200 :
             points.append((list(player1_output.probs),list(player2_output.probs)))
 
             # points.append((list(player1_output.probs),list(player2_output.probs)))
@@ -98,29 +98,30 @@ def get_correct_agents(method:str, qvalues, num_actions, kappa):
     agents = []
     match method:
         case "Q":
-            # step_size = 0.01
+            step_size = 0.01
             agents =[
                 QLearner(player_id=idx, 
                         num_actions=num_actions, 
-                        epsilon_schedule=rl_tools.LinearSchedule(0.1, 0.05,25000),
-                        # step_size=step_size
+                        epsilon_schedule=rl_tools.LinearSchedule(0.3,0.05, 1000),
+                        step_size=step_size
                         )
                 for idx in range(num_players)
             ]
         case "B" : 
-            # step_size = 0.001
+            step_size = 0.001
             agents =[
                 BoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                # step_size = step_size,
-                                temperature_schedule=rl_tools.LinearSchedule(0.1, 0.01, 30000))
+                                step_size = step_size,
+                                temperature_schedule=rl_tools.LinearSchedule(0.3, 0.01, 50000))
                 for idx in range(num_players)
             ]
         case "LB" : 
+            step_size = 0.001
             agents =[
                 LenientBoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                temperature_schedule=rl_tools.LinearSchedule(0.1, 0.01, 25000),
+                                temperature_schedule=rl_tools.LinearSchedule(0.3, 0.01, 50000),
                                 kappa=kappa)
                 for idx in range(num_players)
             ]
@@ -193,7 +194,9 @@ def main():
     # 019  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + no step sizes (both) + geen points iedre 100 + eerste 100
     # 020  -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + no step sizes (both) + geen points iedre 100 + eerste 100
 
-    filename = "020.json"
+
+    # 21 rl_tools.LinearSchedule(0.3,0.05,num_train_episodes)
+    filename = "022.json"
     directory_path = os.path.dirname(os.path.realpath(__file__))
     json_file_path = os.path.join(directory_path, filename)
 
