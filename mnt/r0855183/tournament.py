@@ -192,7 +192,7 @@ def cli(agent1_id, agent1_dir, agent2_id, agent2_dir, output, rounds, timeout, n
     res = pstats.Stats(profile)
     res.sort_stats(pstats.SortKey.TIME)
     res.print_stats()
-    res.dump_stats("r0855183/results/agent_vs_baseline_depth9_rand5.prof")
+    res.dump_stats("agent_vs_baseline_depth9_rand5.prof")
 
 if __name__ == '__main__':
     sys.exit(cli())

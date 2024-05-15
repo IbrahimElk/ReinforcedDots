@@ -3,6 +3,10 @@ from open_spiel.python.algorithms import tabular_qlearner
 import collections
 import numpy as np
 import pyspiel
+import matplotlib.pyplot as plt
+from matplotlib import projections
+import open_spiel.python.egt.visualization as vis
+import numpy as np
 
 class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 	def __init__(self,
@@ -12,7 +16,9 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		discount_factor=1.0,
 		temperature_schedule=rl_tools.ConstantSchedule(.5),
 		centralized=False,
-		kappa=10):	  
+		kappa=10,
+		# init_probs=None
+		):	  
 
 		super().__init__(
 			player_id,
@@ -20,7 +26,9 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 			step_size=step_size,
 			discount_factor=discount_factor,
 			epsilon_schedule=temperature_schedule,
-			centralized=centralized)
+			centralized=centralized,
+			# init_probs=init_probs
+			)
 		
 		self._history = collections.defaultdict(list)
 		self._prev_action = None
@@ -84,11 +92,17 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 		action, probs = None, None
 
 		# Act step: don't act at terminal states.
-		if not time_step.last():
+		if not time_step.last(): # and self._init:
 			epsilon = 0.0 if is_evaluation else self._epsilon
 			action, probs = self._get_action_probs(info_state, legal_actions, epsilon)
 
-    	# Learn step: don't learn during evaluation or at first agent steps.
+		# different start position for visualisation: 
+		# if not self._init : 	# probs = [0.5, 0.5] 
+		# 	assert len(self._initial_probs) == self._num_actions
+		# 	probs = self._initial_probs
+		# 	action = np.random.choice(range(self._num_actions), p=probs)
+		# 	self._init = True
+
 		if self._prev_info_state and not is_evaluation:
 			target = time_step.rewards[self._player_id]
 
@@ -99,9 +113,6 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 				self._history[self._prev_action].append(target)
 			else: 
 				target = max(self._history[self._prev_action])
-
-				# delete previous rewards from the buffer 
-				self._history[self._prev_action] = []
 
 				if not time_step.last():  # Q values are zero for terminal.
 					# een deel van de Q FORMULA:
@@ -118,7 +129,11 @@ class LenientBoltzmannQLearner(tabular_qlearner.QLearner):
 					# Decay epsilon, if necessary.
 					# α lager laten worden voor convergentie denk iK. 
 				self._epsilon = self._epsilon_schedule.step()
-					
+
+				# delete previous rewards from the buffer 
+				self._history[self._prev_action] = []
+			
+			# print(self._history)
 			if time_step.last():  # prepare for the next episode.
 				self._prev_info_state = None
 				return
@@ -143,27 +158,30 @@ if __name__ == "__main__":
 	num_players = 2
 	game = pyspiel.create_matrix_game("subsidy_game", "Subsidy Game", ["S1","S2"], ["S1","S2"], [[12,0], [11,10]], [[12,11], [0,10]])
 	
-	env = rl_environment.Environment(game)
+	env = rl_environment.Environment("matrix_pd")
 	num_actions = env.action_spec()["num_actions"]
-	Kappa = 15 
+	Kappa = 5
 	wife    = LenientBoltzmannQLearner(	player_id=0,
 										num_actions=num_actions,    
-										temperature_schedule=rl_tools.ConstantSchedule(1),
-										kappa=Kappa)
+										temperature_schedule=rl_tools.ConstantSchedule(0.2),
+										kappa=Kappa,
+										step_size=0.001)
 	husband = LenientBoltzmannQLearner(	player_id=1, 
 										num_actions=num_actions,    
-										temperature_schedule=rl_tools.ConstantSchedule(1),
-										kappa=Kappa)
+										temperature_schedule=rl_tools.ConstantSchedule(0.2),
+										kappa=Kappa,
+										step_size=0.001)
 
 	# 1. Train the agents
-	training_episodes = 25000
+	training_episodes = 100000
 	# FIXME: wrm is het zo slecht als met willekeurige kappa ????
 	# het is zo dat bepaalde acties enkel rewards "12" bevatten en dus de max zou die nemen....
 
 	# aight blijkbaar als temperature 1 is, dan groter kans op 12???
 	# FIXME: mss de agent laten runnen voor meerere keren voor verschillende waarden van temperature ? 
 	# (kappa, is denk ik genoeg , puur op intuitie.)
-
+	punten1 = []
+	punten2 = []
 	for cur_episode in range(training_episodes):
 			if cur_episode % int(1e4) == 0:
 				print("Starting episode: ", cur_episode)
@@ -172,6 +190,8 @@ if __name__ == "__main__":
 					wife_output = wife.step(time_step)
 					husband_output = husband.step(time_step)
 					time_step = env.step([wife_output.action,husband_output.action])
+					punten1.append(wife_output.probs[0])
+					punten2.append(husband_output.probs[0])
 
 			wife.step(time_step)
 			husband.step(time_step)
@@ -179,3 +199,30 @@ if __name__ == "__main__":
 	print("")
 	print(env.get_state)
 	print(time_step.rewards)
+
+
+	
+	# fig = plt.figure()
+	# ax = fig.add_subplot(111, projection="2x2")
+	# ax.plot(punten1, punten2)
+	# plt.show()
+
+	projections.register_projection(vis.Dynamics3x3Axes)
+	# payoff_tensor = utils.game_payoffs_array(game)
+	# repdyn = dynamics.SinglePopulationDynamics(payoff_tensor,dynamics.replicator)
+
+	# Plot replicator dynamics as a vector field.
+	fig = plt.figure(figsize=(10,10))
+	subplt = fig.add_subplot(111,projection="2x2")
+	# subplt.quiver(repdyn,color='black',alpha=0.2)
+
+	# subplt.plot(punten1 ,linewidth=4-trajectorynr,alpha=0.5,color=colordict[trajectorynr])
+	subplt.plot(punten1, punten2)
+
+
+	#    ({stringify_list(parameterlist)})
+	# subplt.set_title(f"Trajectory plot: {game.get_type().long_name} using {alg}.")
+	# subplt.set_labels(["Rock", "Paper", "Scissors"])
+	# filepath = os.path.join(subfolder_path,"traj_plot_" + game.get_type().short_name +"_"+ alg + stringify_list(parameterlist) + ".png")
+	# plt.savefig(filepath)
+	plt.show()

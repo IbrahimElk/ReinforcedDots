@@ -447,9 +447,10 @@ class StrategyAdvisor :
         # print((t2-t1) * 1000)
 
         actions = state.legal_actions()
-        num_to_pick = min(5, len(actions))
-        random_selection = r.sample(actions, num_to_pick)
-        return random_selection
+        if self.num_rows >= 8 or self.num_cols >= 8 : 
+            num_to_pick = min(5, len(actions))
+            actions = r.sample(actions, num_to_pick)
+        return actions
 
     def obtain_chains(self, cache_chains, state): 
         # 0) cache voor de chains. 

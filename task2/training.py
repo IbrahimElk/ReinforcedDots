@@ -37,7 +37,7 @@ def train_agents(player1: rl_agent.AbstractAgent,
         # cur_episode % 500 == 0 or
         # or cur_episode <= 1000
         # cur_episode % 100 == 0 or  
-        if cur_episode <= 200 :
+        # if cur_episode <= 200 :
             points.append((list(player1_output.probs),list(player2_output.probs)))
 
             # points.append((list(player1_output.probs),list(player2_output.probs)))
@@ -72,7 +72,7 @@ def get_all_red_lines(
         # multiple_hists_per_learner = []
         # for _ in range(num_lines):
         [agent1, agent2] = get_correct_agents(method, intial_q_values[i], num_actions, Kappa)
-        history_of_probs = train_agents(agent1, agent2, game=game, training_episodes=25000)
+        history_of_probs = train_agents(agent1, agent2, game=game, training_episodes=10000)
         # multiple_hists_per_learner.append(history_of_probs)
         
         # mean_hstr = mean_elementwise(multiple_hists_per_learner)
@@ -98,11 +98,11 @@ def get_correct_agents(method:str, qvalues, num_actions, kappa):
     agents = []
     match method:
         case "Q":
-            step_size = 0.01
+            step_size = 0.001
             agents =[
                 QLearner(player_id=idx, 
                         num_actions=num_actions, 
-                        epsilon_schedule=rl_tools.LinearSchedule(0.3,0.05, 1000),
+                        epsilon_schedule=rl_tools.LinearSchedule(0.5, 0.05, 10000),
                         step_size=step_size
                         )
                 for idx in range(num_players)
@@ -113,7 +113,7 @@ def get_correct_agents(method:str, qvalues, num_actions, kappa):
                 BoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
                                 step_size = step_size,
-                                temperature_schedule=rl_tools.LinearSchedule(0.3, 0.01, 50000))
+                                temperature_schedule=rl_tools.LinearSchedule(0.5, 0.01, 11000))
                 for idx in range(num_players)
             ]
         case "LB" : 
@@ -121,8 +121,9 @@ def get_correct_agents(method:str, qvalues, num_actions, kappa):
             agents =[
                 LenientBoltzmannQLearner(player_id=idx, 
                                 num_actions=num_actions,
-                                temperature_schedule=rl_tools.LinearSchedule(0.3, 0.01, 50000),
-                                kappa=kappa)
+                                temperature_schedule=rl_tools.LinearSchedule(0.5, 0.01, 10000),
+                                kappa=kappa,
+                                step_size=step_size)
                 for idx in range(num_players)
             ]
         case _: 
@@ -194,9 +195,15 @@ def main():
     # 019  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + no step sizes (both) + geen points iedre 100 + eerste 100
     # 020  -> (0.1, 0.05,25000) + (0.1, 0.01, 30000) + (0.1, 0.01, 25000)     + no step sizes (both) + geen points iedre 100 + eerste 100
 
+    # 030  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 1000 iteraties
+    # 031  -> (0.50, 0.05,25000) + (0.50, 0.01, 30000) + (0.50, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 1000 iteraties
+    
+    # 032  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 5000 iteraties
+    # 033  -> (0.50, 0.05,25000) + (0.50, 0.01, 30000) + (0.50, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 5000 iteraties
 
-    # 21 rl_tools.LinearSchedule(0.3,0.05,num_train_episodes)
-    filename = "022.json"
+    # 034  -> (0.25, 0.05,25000) + (0.25, 0.01, 30000) + (0.25, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 10000 iteraties
+    # 035  -> (0.50, 0.05,25000) + (0.50, 0.01, 30000) + (0.50, 0.01, 25000)  + step sizes (SMALL both) + geen points iedre 100 + geen eerste 100 + 10000 iteraties
+    filename = "035.json"
     directory_path = os.path.dirname(os.path.realpath(__file__))
     json_file_path = os.path.join(directory_path, filename)
 

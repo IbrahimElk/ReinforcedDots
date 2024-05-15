@@ -95,10 +95,10 @@ class Agent(pyspiel.Bot):
             # logger.info("self.SA is None in step")
             self.restart_at(state)
 
-        if self.num_rows < 10 and self.num_cols < 10:
-            max_allowed_depth = 9
-        else: 
-            max_allowed_depth = 5
+        # if self.num_rows < 10 and self.num_cols < 10:
+        #     max_allowed_depth = 9
+        # else: 
+        max_allowed_depth = 5
         
         _, best_action = minimax_alphabeta_search(game=state.get_game(),
                                             state=state.clone(),
